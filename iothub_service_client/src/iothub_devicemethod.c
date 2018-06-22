@@ -50,8 +50,6 @@ typedef struct IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_TAG
     char* hostname;
     char* sharedAccessKey;
     char* keyName;
-    char* deviceId;
-    char* moduleId;
 } IOTHUB_SERVICE_CLIENT_DEVICE_METHOD;
 
 static IOTHUB_DEVICE_METHOD_RESULT parseResponseJson(BUFFER_HANDLE responseJson, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
@@ -245,31 +243,18 @@ static HTTP_HEADERS_HANDLE createHttpHeader()
     return httpHeader;
 }
 
-static STRING_HANDLE createUriPathForMethod(IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE serviceClientDeviceMethodHandle)
-{
-    if (serviceClientDeviceMethodHandle->deviceId != NULL)
-    {
-        return STRING_construct_sprintf("%s%%2Fdevices%%2F%s%%2Fmodules%%2F%s", serviceClientDeviceMethodHandle->hostname, serviceClientDeviceMethodHandle->deviceId, serviceClientDeviceMethodHandle->moduleId);
-    }
-    else
-    {
-        return STRING_construct(serviceClientDeviceMethodHandle->hostname);
-    }
-}
-
-
 static IOTHUB_DEVICE_METHOD_RESULT sendHttpRequestDeviceMethod(IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE serviceClientDeviceMethodHandle, IOTHUB_DEVICEMETHOD_REQUEST_MODE iotHubDeviceMethodRequestMode, const char* deviceId, const char* moduleId, BUFFER_HANDLE deviceJsonBuffer, BUFFER_HANDLE responseBuffer)
 {
     IOTHUB_DEVICE_METHOD_RESULT result;
 
     STRING_HANDLE uriResource;
     STRING_HANDLE accessKey;
-    STRING_HANDLE keyName = NULL;
+    STRING_HANDLE keyName;
     HTTPAPIEX_SAS_HANDLE httpExApiSasHandle;
     HTTPAPIEX_HANDLE httpExApiHandle;
     HTTP_HEADERS_HANDLE httpHeader;
 
-    if ((uriResource = createUriPathForMethod(serviceClientDeviceMethodHandle)) == NULL)
+    if ((uriResource = STRING_construct(serviceClientDeviceMethodHandle->hostname)) == NULL)
     {
         LogError("STRING_construct failed for uriResource");
         result = IOTHUB_DEVICE_METHOD_ERROR;
@@ -280,7 +265,7 @@ static IOTHUB_DEVICE_METHOD_RESULT sendHttpRequestDeviceMethod(IOTHUB_SERVICE_CL
         STRING_delete(uriResource);
         result = IOTHUB_DEVICE_METHOD_ERROR;
     }
-    else if ((serviceClientDeviceMethodHandle->keyName != NULL) &&  ((keyName = STRING_construct(serviceClientDeviceMethodHandle->keyName)) == NULL))
+    else if ((keyName = STRING_construct(serviceClientDeviceMethodHandle->keyName)) == NULL)
     {
         LogError("STRING_construct failed for keyName");
         STRING_delete(accessKey);
@@ -372,17 +357,6 @@ static IOTHUB_DEVICE_METHOD_RESULT sendHttpRequestDeviceMethod(IOTHUB_SERVICE_CL
     return result;
 }
 
-static void free_IoTHubDeviceMethod_members(IOTHUB_SERVICE_CLIENT_DEVICE_METHOD* serviceClientDeviceMethod)
-{
-    free(serviceClientDeviceMethod->hostname);
-    free(serviceClientDeviceMethod->sharedAccessKey);
-    free(serviceClientDeviceMethod->keyName);
-    free(serviceClientDeviceMethod->deviceId);
-    free(serviceClientDeviceMethod->moduleId);
-    free(serviceClientDeviceMethod);
-}
-
-
 IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE IoTHubDeviceMethod_Create(IOTHUB_SERVICE_CLIENT_AUTH_HANDLE serviceClientHandle)
 {
     IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE result;
@@ -398,9 +372,9 @@ IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE IoTHubDeviceMethod_Create(IOTHUB_SERV
         /*Codes_SRS_IOTHUBDEVICEMETHOD_12_002: [ If any member of the serviceClientHandle input parameter is NULL IoTHubDeviceMethod_Create shall return NULL ]*/
         IOTHUB_SERVICE_CLIENT_AUTH* serviceClientAuth = (IOTHUB_SERVICE_CLIENT_AUTH*)serviceClientHandle;
 
-        if ((serviceClientAuth->authType != IOTHUB_SERVICE_CLIENT_AUTH_TYPE_HUB) && (serviceClientAuth->authType != IOTHUB_SERVICE_CLIENT_AUTH_TYPE_MODULE))
+        if (serviceClientAuth->authType != IOTHUB_SERVICE_CLIENT_AUTH_TYPE_HUB)
         {
-            LogError("authInfo->authType must be IOTHUB_SERVICE_CLIENT_AUTH_TYPE_HUB or IOTHUB_SERVICE_CLIENT_AUTH_TYPE_MODULE");
+            LogError("authInfo->authType must be IOTHUB_SERVICE_CLIENT_AUTH_TYPE_HUB");
             result = NULL;
         }
         else if (serviceClientAuth->hostname == NULL)
@@ -418,19 +392,9 @@ IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE IoTHubDeviceMethod_Create(IOTHUB_SERV
             LogError("authInfo->iothubSuffix input parameter cannot be NULL");
             result = NULL;
         }
-        else if ((serviceClientAuth->authType == IOTHUB_SERVICE_CLIENT_AUTH_TYPE_HUB) && (serviceClientAuth->keyName == NULL))
+        else if (serviceClientAuth->keyName == NULL)
         {
-            LogError("authInfo->keyName input parameter cannot be NULL for IOTHUB_SERVICE_CLIENT_AUTH_TYPE_HUB");
-            result = NULL;
-        }
-        else if ((serviceClientAuth->authType == IOTHUB_SERVICE_CLIENT_AUTH_TYPE_MODULE) && (serviceClientAuth->deviceId == NULL))
-        {
-            LogError("authInfo->deviceId input parameter cannot be NULL for IOTHUB_SERVICE_CLIENT_AUTH_TYPE_MODULE");
-            result = NULL;
-        }
-        else if ((serviceClientAuth->authType == IOTHUB_SERVICE_CLIENT_AUTH_TYPE_MODULE) && (serviceClientAuth->moduleId == NULL))
-        {
-            LogError("authInfo->moduleId input parameter cannot be NULL for IOTHUB_SERVICE_CLIENT_AUTH_TYPE_MODULE");
+            LogError("authInfo->keyName input parameter cannot be NULL");
             result = NULL;
         }
         else if (serviceClientAuth->sharedAccessKey == NULL)
@@ -449,14 +413,13 @@ IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE IoTHubDeviceMethod_Create(IOTHUB_SERV
             }
             else
             {
-                memset(result, 0, sizeof(*result));
                 /*Codes_SRS_IOTHUBDEVICEMETHOD_12_005: [ If the allocation successful, IoTHubDeviceMethod_Create shall create a IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE from the given IOTHUB_SERVICE_CLIENT_AUTH_HANDLE and return with it ]*/
                 /*Codes_SRS_IOTHUBDEVICEMETHOD_12_006: [ IoTHubDeviceMethod_Create shall allocate memory and copy hostName to result->hostName by calling mallocAndStrcpy_s. ]*/
                 if (mallocAndStrcpy_s(&result->hostname, serviceClientAuth->hostname) != 0)
                 {
                     /*Codes_SRS_IOTHUBDEVICEMETHOD_12_007: [ If the mallocAndStrcpy_s fails, IoTHubDeviceMethod_Create shall do clean up and return NULL. ]*/
                     LogError("mallocAndStrcpy_s failed for hostName");
-                    free_IoTHubDeviceMethod_members(result);
+                    free(result);
                     result = NULL;
                 }
                 /*Codes_SRS_IOTHUBDEVICEMETHOD_12_012: [ IoTHubDeviceMethod_Create shall allocate memory and copy sharedAccessKey to result->sharedAccessKey by calling mallocAndStrcpy_s. ]*/
@@ -464,27 +427,18 @@ IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE IoTHubDeviceMethod_Create(IOTHUB_SERV
                 {
                     /*Codes_SRS_IOTHUBDEVICEMETHOD_12_013: [ If the mallocAndStrcpy_s fails, IoTHubDeviceMethod_Create shall do clean up and return NULL. ]*/
                     LogError("mallocAndStrcpy_s failed for sharedAccessKey");
-                    free_IoTHubDeviceMethod_members(result);
+                    free(result->hostname);
+                    free(result);
                     result = NULL;
                 }
                 /*Codes_SRS_IOTHUBDEVICEMETHOD_12_014: [ IoTHubDeviceMethod_Create shall allocate memory and copy keyName to result->keyName by calling mallocAndStrcpy_s. ]*/
-                else if ((serviceClientAuth->keyName != NULL)  && (mallocAndStrcpy_s(&result->keyName, serviceClientAuth->keyName) != 0))
+                else if (mallocAndStrcpy_s(&result->keyName, serviceClientAuth->keyName) != 0)
                 {
                     /*Codes_SRS_IOTHUBDEVICEMETHOD_12_015: [ If the mallocAndStrcpy_s fails, IoTHubDeviceMethod_Create shall do clean up and return NULL. ]*/
                     LogError("mallocAndStrcpy_s failed for keyName");
-                    free_IoTHubDeviceMethod_members(result);
-                    result = NULL;
-                }
-                else if ((serviceClientAuth->deviceId != NULL) && (mallocAndStrcpy_s(&result->deviceId, serviceClientAuth->deviceId) != 0))
-                {
-                    LogError("mallocAndStrcpy_s failed for deviceId");
-                    free_IoTHubDeviceMethod_members(result);
-                    result = NULL;
-                }
-                else if ((serviceClientAuth->moduleId != NULL) && (mallocAndStrcpy_s(&result->moduleId, serviceClientAuth->moduleId) != 0))
-                {
-                    LogError("mallocAndStrcpy_s failed for moduleId");
-                    free_IoTHubDeviceMethod_members(result);
+                    free(result->hostname);
+                    free(result->sharedAccessKey);
+                    free(result);
                     result = NULL;
                 }
             }
@@ -499,7 +453,12 @@ void IoTHubDeviceMethod_Destroy(IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_HANDLE servi
     if (serviceClientDeviceMethodHandle != NULL)
     {
         /*Codes_SRS_IOTHUBDEVICEMETHOD_12_017: [ If the serviceClientDeviceMethodHandle input parameter is not NULL IoTHubDeviceMethod_Destroy shall free the memory of it and return ]*/
-        free_IoTHubDeviceMethod_members((IOTHUB_SERVICE_CLIENT_DEVICE_METHOD*)serviceClientDeviceMethodHandle);
+        IOTHUB_SERVICE_CLIENT_DEVICE_METHOD* serviceClientDeviceMethod = (IOTHUB_SERVICE_CLIENT_DEVICE_METHOD*)serviceClientDeviceMethodHandle;
+
+        free(serviceClientDeviceMethod->hostname);
+        free(serviceClientDeviceMethod->sharedAccessKey);
+        free(serviceClientDeviceMethod->keyName);
+        free(serviceClientDeviceMethod);
     }
 }
 
