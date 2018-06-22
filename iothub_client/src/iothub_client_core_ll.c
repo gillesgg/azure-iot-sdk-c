@@ -14,6 +14,7 @@
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/singlylinkedlist.h" 
 #include "azure_c_shared_utility/shared_util_options.h"
+#include "azure_c_shared_utility/envvariable.h"
 #include "azure_prov_client/iothub_security_factory.h"
 
 #include "iothub_client_core_ll.h"
@@ -274,6 +275,10 @@ static void device_twin_data_destroy(IOTHUB_DEVICE_TWIN* client_item)
 static int create_module_method_module(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle_data, const IOTHUB_CLIENT_CONFIG* config, const char* module_id)
 {
     int result;
+    (void)handle_data;
+    (void)config;
+    (void)module_id;
+#ifdef USE_EDGE_MODULES
     handle_data->methodHandle = IoTHubModuleClient_LL_MethodHandle_Create(config, handle_data->authorization_module, module_id);
     if (handle_data->methodHandle == NULL)
     {
@@ -284,6 +289,9 @@ static int create_module_method_module(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle
     {
         result = 0;
     }
+#else
+    result = 0
+#endif
     return result;
 }
 
@@ -315,6 +323,14 @@ static void destroy_blob_upload_module(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle
 #ifndef DONT_USE_UPLOADTOBLOB
     /*Codes_SRS_IOTHUBCLIENT_LL_02_046: [ If creating the TICK_COUNTER_HANDLE fails then IoTHubClientCore_LL_Create shall fail and return NULL. ]*/
     IoTHubClient_LL_UploadToBlob_Destroy(handle_data->uploadToBlobHandle);
+#endif
+}
+
+static void destroy_module_method_module(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle_data)
+{
+    (void)handle_data;
+#ifdef USE_EDGE_MODULES
+    IoTHubModuleClient_LL_MethodHandle_Destroy(handle_data->methodHandle);
 #endif
 }
 
@@ -425,7 +441,7 @@ static IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* initialize_iothub_client(const IOTHUB_
                         /*Codes_SRS_IOTHUBCLIENT_LL_02_007: [If the underlaying layer _Create function fails them IoTHubClientCore_LL_Create shall fail and return NULL.] */
                         LogError("underlying transport failed");
                         destroy_blob_upload_module(result);
-                        IoTHubModuleClient_LL_MethodHandle_Destroy(result->methodHandle);
+                        destroy_module_method_module(result);
                         tickcounter_destroy(result->tickCounter);
                         IoTHubClient_Auth_Destroy(result->authorization_module);
                         STRING_delete(product_info);
@@ -556,7 +572,7 @@ static IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* initialize_iothub_client(const IOTHUB_
                             result->IoTHubTransport_Destroy(result->transportHandle);
                         }
                         destroy_blob_upload_module(result);
-                        IoTHubModuleClient_LL_MethodHandle_Destroy(result->methodHandle);
+                        destroy_module_method_module(result);
                         IoTHubClient_Auth_Destroy(result->authorization_module);
                         STRING_delete(product_info);
                         free(result);
@@ -591,7 +607,7 @@ static IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* initialize_iothub_client(const IOTHUB_
                                 result->IoTHubTransport_Destroy(result->transportHandle);
                             }
                             destroy_blob_upload_module(result);
-                            IoTHubModuleClient_LL_MethodHandle_Destroy(result->methodHandle);
+                            destroy_module_method_module(result);
                             tickcounter_destroy(result->tickCounter);
                             STRING_delete(product_info);
                             free(result);
@@ -617,7 +633,7 @@ static IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* initialize_iothub_client(const IOTHUB_
                                     result->IoTHubTransport_Destroy(result->transportHandle);
                                 }
                                 destroy_blob_upload_module(result);
-                                IoTHubModuleClient_LL_MethodHandle_Destroy(result->methodHandle);
+                                destroy_module_method_module(result);
                                 tickcounter_destroy(result->tickCounter);
                                 STRING_delete(product_info);
                                 free(result);
@@ -1152,7 +1168,7 @@ IOTHUB_CLIENT_CORE_LL_HANDLE IoTHubClientCore_LL_CreateFromEnvironment(IOTHUB_CL
     // The presence of a connection string environment variable means we use it, ignoring other settings
     else if (edge_environment_variables.connection_string != NULL)
     {
-        result = IoTHubModuleClient_LL_CreateFromConnectionString(edge_environment_variables.connection_string, protocol);
+        result = IoTHubClientCore_LL_CreateFromConnectionString(edge_environment_variables.connection_string, protocol);
     }
     else if (iothub_security_init(IOTHUB_SECURITY_TYPE_HTTP_EDGE) != 0)
     {
@@ -1270,7 +1286,9 @@ void IoTHubClientCore_LL_Destroy(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle
 #ifndef DONT_USE_UPLOADTOBLOB
         IoTHubClient_LL_UploadToBlob_Destroy(handleData->uploadToBlobHandle);
 #endif
+#ifdef USE_EDGE_MODULES
         IoTHubModuleClient_LL_MethodHandle_Destroy(handleData->methodHandle);
+#endif
         STRING_delete(handleData->product_info);
         free(handleData);
     }
@@ -2755,5 +2773,23 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_LL_SetInputMessageCallback(IOTHUB_CLIENT_C
 {
     return IoTHubClientCore_LL_SetInputMessageCallbackImpl(iotHubClientHandle, inputName, eventHandlerCallback, NULL, userContextCallback, NULL, 0);
 }
+
+/* These should be replaced during iothub_client refactor */
+IOTHUB_CLIENT_RESULT IoTHubClientCore_LL_GateToGenericMethodInvoke(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+{
+    IOTHUB_CLIENT_RESULT result;
+    if (iotHubClientHandle != NULL)
+    {
+        result = IoTHubModuleClient_LL_GenericMethodInvoke(iotHubClientHandle->methodHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+    }
+    else
+    {
+        result = IOTHUB_CLIENT_INVALID_ARG;
+    }
+    return result;
+}
+
+
+/*end*/
 
 #endif /* DONT_USE_UPLOADTOBLOB */

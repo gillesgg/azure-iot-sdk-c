@@ -69,8 +69,9 @@ extern "C"
     MOCKABLE_FUNCTION(, IOTHUB_CLIENT_CORE_LL_HANDLE, IoTHubClientCore_LL_CreateFromEnvironment, IOTHUB_CLIENT_TRANSPORT_PROVIDER, protocol);
 #endif
 
-    /* Utility */
+    /* Utility (Should be replaced after iothub_client refactor)*/
     MOCKABLE_FUNCTION(, IOTHUB_MODULE_CLIENT_METHOD_HANDLE, IoTHubClientCore_LL_GetMethodHandle, IOTHUB_CLIENT_CORE_LL_HANDLE, iotHubClientHandle);
+    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClientCore_LL_GateToGenericMethodInvoke, IOTHUB_CLIENT_CORE_LL_HANDLE, iotHubClientHandle, const char*, deviceId, const char*, moduleId, const char*, methodName, const char*, methodPayload, unsigned int, timeout, int*, responseStatus, unsigned char**, responsePayload, size_t*, responsePayloadSize);
 
 #ifdef __cplusplus
 }

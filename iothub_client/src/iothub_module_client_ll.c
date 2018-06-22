@@ -29,17 +29,11 @@
 #include "iothub_client_ll_uploadtoblob.h"
 #endif
 
-
-
-
-
 typedef struct IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA_TAG
 {
     IOTHUB_CLIENT_CORE_LL_HANDLE coreHandle;
     IOTHUB_MODULE_CLIENT_METHOD_HANDLE methodHandle;
 } IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA;
-
-
 
 
 IOTHUB_MODULE_CLIENT_LL_HANDLE IoTHubModuleClient_LL_CreateFromConnectionString(const char* connectionString, IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol)
