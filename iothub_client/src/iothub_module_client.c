@@ -35,8 +35,7 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_GetSendStatus(IOTHUB_MODULE_CLIENT_HANDL
 
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetMessageCallback(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, IOTHUB_CLIENT_MESSAGE_CALLBACK_ASYNC messageCallback, void* userContextCallback)
 {
-    return IoTHubClientCore_SetMessageCallback((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, messageCallback, userContextCallback);
-}
+    return IoTHubClientCore_SetInputMessageCallback((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, NULL, messageCallback, userContextCallback);}
 
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetConnectionStatusCallback(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, IOTHUB_CLIENT_CONNECTION_STATUS_CALLBACK connectionStatusCallback, void * userContextCallback)
 {
@@ -68,9 +67,15 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetModuleTwinCallback(IOTHUB_MODULE_CLIE
     return IoTHubClientCore_SetDeviceTwinCallback((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, moduleTwinCallback, userContextCallback);
 }
 
+<<<<<<< HEAD
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_SendReportedState(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, const unsigned char* reportedState, size_t size, IOTHUB_CLIENT_REPORTED_STATE_CALLBACK reportedStateCallback, void* userContextCallback)
 {
     return IoTHubClientCore_SendReportedState((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, reportedState, size, reportedStateCallback, userContextCallback);
+=======
+IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_HANDLE iotHubClientHandle, IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC methodCallback, void* userContextCallback)
+{
+    return IoTHubClientCore_SetDeviceMethodCallback((IOTHUB_CLIENT_CORE_HANDLE)iotHubClientHandle, methodCallback, userContextCallback);
+>>>>>>> modules-preview
 }
 
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK inboundModuleMethodCallback, void* userContextCallback)

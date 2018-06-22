@@ -130,7 +130,7 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_SetMessageCallback(IOTHUB_MODULE_CLIE
     IOTHUB_CLIENT_RESULT result;
     if (iotHubModuleClientHandle != NULL)
     {
-        result = IoTHubClientCore_LL_SetMessageCallback(iotHubModuleClientHandle->coreHandle, messageCallback, userContextCallback);
+        result = IoTHubClientCore_LL_SetInputMessageCallback(iotHubModuleClientHandle->coreHandle, NULL, messageCallback, userContextCallback);
     }
     else
     {
