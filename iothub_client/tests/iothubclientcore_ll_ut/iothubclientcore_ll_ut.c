@@ -904,7 +904,7 @@ static int should_skip_index(size_t current_index, const size_t skip_array[], si
     return result;
 }
 
-static void setup_IoTHubClientCore_LL_create_mocks(bool use_device_config)
+static void setup_IoTHubClientCore_LL_create_mocks(bool use_device_config, bool is_module)
 {
     STRICT_EXPECTED_CALL(platform_get_platform_info());
     STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG));
@@ -927,7 +927,10 @@ static void setup_IoTHubClientCore_LL_create_mocks(bool use_device_config)
 #endif /*DONT_USE_UPLOADTOBLOB*/
 
 #ifdef USE_EDGE_MODULES
-        STRICT_EXPECTED_CALL(IoTHubModuleClient_LL_MethodHandle_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        if (is_module)
+        {
+            STRICT_EXPECTED_CALL(IoTHubModuleClient_LL_MethodHandle_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        }
 #endif /*USE_EDGE_MODULES*/
 
         STRICT_EXPECTED_CALL(tickcounter_create());
@@ -1020,7 +1023,7 @@ static void setup_IoTHubClientCore_LL_createfromconnectionstring_2_mocks(const c
 
     STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).IgnoreArgument_handle().SetReturn(NULL);
 
-    setup_IoTHubClientCore_LL_create_mocks(provisioning);
+    setup_IoTHubClientCore_LL_create_mocks(provisioning, false);
 
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
@@ -1077,7 +1080,7 @@ static void setup_IoTHubClientCore_LL_createfromconnectionstring_mocks(const cha
 
     STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).IgnoreArgument_handle().SetReturn(NULL);
 
-    setup_IoTHubClientCore_LL_create_mocks(false);
+    setup_IoTHubClientCore_LL_create_mocks(false, false);
 
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG)); // 38
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
@@ -1249,7 +1252,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_CreateFromConnectionString_withGatewayHostName
 
     STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).IgnoreArgument_handle().SetReturn(NULL);
 
-    setup_IoTHubClientCore_LL_create_mocks(false);
+    setup_IoTHubClientCore_LL_create_mocks(false, false);
 
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG)); // 36
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
@@ -1441,7 +1444,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_CreateFromConnectionString_with_ModuleId_succe
 
     STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).IgnoreArgument_handle().SetReturn(TEST_MODULE_ID_TOKEN);
 
-    setup_IoTHubClientCore_LL_create_mocks(false);
+    setup_IoTHubClientCore_LL_create_mocks(false, true);
 
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
@@ -1508,7 +1511,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_Create_suceeds)
     device.deviceKey = TEST_CONFIG.deviceKey;
     device.deviceSasToken = NULL;
 
-    setup_IoTHubClientCore_LL_create_mocks(false);
+    setup_IoTHubClientCore_LL_create_mocks(false, false);
 
     //act
     IOTHUB_CLIENT_CORE_LL_HANDLE result = IoTHubClientCore_LL_Create(&TEST_CONFIG);
@@ -1538,7 +1541,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_Create_fail)
     device.deviceSasToken = NULL;
     umock_c_reset_all_calls();
 
-    setup_IoTHubClientCore_LL_create_mocks(false);
+    setup_IoTHubClientCore_LL_create_mocks(false, false);
 
     umock_c_negative_tests_snapshot();
 
@@ -1721,7 +1724,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_CreateFromDeviceAuth_Succeeds)
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
-    setup_IoTHubClientCore_LL_create_mocks(true);
+    setup_IoTHubClientCore_LL_create_mocks(true, false);
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
@@ -1755,7 +1758,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_CreateWithTransport_fail)
     device.deviceKey = TEST_DEVICE_CONFIG.deviceKey;
     device.deviceSasToken = NULL;
 
-    setup_IoTHubClientCore_LL_create_mocks(true);
+    setup_IoTHubClientCore_LL_create_mocks(true, false);
 
     //act
     umock_c_negative_tests_snapshot();
