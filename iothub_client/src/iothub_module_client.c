@@ -67,20 +67,14 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetModuleTwinCallback(IOTHUB_MODULE_CLIE
     return IoTHubClientCore_SetDeviceTwinCallback((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, moduleTwinCallback, userContextCallback);
 }
 
-<<<<<<< HEAD
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_SendReportedState(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, const unsigned char* reportedState, size_t size, IOTHUB_CLIENT_REPORTED_STATE_CALLBACK reportedStateCallback, void* userContextCallback)
 {
     return IoTHubClientCore_SendReportedState((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, reportedState, size, reportedStateCallback, userContextCallback);
-=======
+}
+
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_HANDLE iotHubClientHandle, IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC methodCallback, void* userContextCallback)
 {
     return IoTHubClientCore_SetDeviceMethodCallback((IOTHUB_CLIENT_CORE_HANDLE)iotHubClientHandle, methodCallback, userContextCallback);
->>>>>>> modules-preview
-}
-
-IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK inboundModuleMethodCallback, void* userContextCallback)
-{
-    return IoTHubClientCore_SetDeviceMethodCallback_Ex((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, inboundModuleMethodCallback, userContextCallback);
 }
 
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_ModuleMethodResponse(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, METHOD_HANDLE methodId, const unsigned char* response, size_t respSize, int statusCode)
