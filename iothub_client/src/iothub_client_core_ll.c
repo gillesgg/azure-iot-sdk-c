@@ -227,7 +227,7 @@ static int retrieve_edge_environment_variabes(EDGE_ENVIRONMENT_VARIABLES *edge_e
 }
 /* end */
 
-IOTHUB_CLIENT_EDGE_HANDLE IoTHubClientCore_LL_GetMethodHandle(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle)
+IOTHUB_CLIENT_EDGE_HANDLE IoTHubClientCore_LL_GetEdgeHandle(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle)
 {
     IOTHUB_CLIENT_EDGE_HANDLE result;
     if (iotHubClientHandle != NULL)
