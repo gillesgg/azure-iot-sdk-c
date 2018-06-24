@@ -13,7 +13,7 @@ ${theseTestsName}.c
 )
 
 set(${theseTestsName}_c_files
-../../src/iothub_module_client_ll_method.c
+../../src/iothub_client_edge.c
 )
 
 set(${theseTestsName}_h_files

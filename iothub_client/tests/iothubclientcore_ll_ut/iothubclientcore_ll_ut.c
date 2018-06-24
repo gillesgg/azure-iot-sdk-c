@@ -54,7 +54,7 @@ void* my_gballoc_realloc(void* ptr, size_t size)
 #include "internal/iothub_client_diagnostic.h"
 
 #ifdef USE_EDGE_MODULES
-#include "internal/iothub_module_client_ll_method.h"
+#include "internal/iothub_client_edge.h"
 #endif
 
 #undef ENABLE_MOCKS
@@ -440,15 +440,15 @@ static void my_IoTHubClient_LL_UploadToBlob_Destroy(IOTHUB_CLIENT_LL_UPLOADTOBLO
 #endif
 
 #ifdef USE_EDGE_MODULES
-static IOTHUB_MODULE_CLIENT_METHOD_HANDLE my_IoTHubModuleClient_LL_MethodHandle_Create(const IOTHUB_CLIENT_CONFIG* config, IOTHUB_AUTHORIZATION_HANDLE authorizationHandle, const char* moduleId)
+static IOTHUB_CLIENT_EDGE_HANDLE my_IoTHubModuleClient_LL_MethodHandle_Create(const IOTHUB_CLIENT_CONFIG* config, IOTHUB_AUTHORIZATION_HANDLE authorizationHandle, const char* moduleId)
 {
     (void)config;
     (void)authorizationHandle;
     (void)moduleId;
-    return (IOTHUB_MODULE_CLIENT_METHOD_HANDLE)my_gballoc_malloc(1);
+    return (IOTHUB_CLIENT_EDGE_HANDLE)my_gballoc_malloc(1);
 }
 
-static void my_IoTHubModuleClient_LL_MethodHandle_Destroy(IOTHUB_MODULE_CLIENT_METHOD_HANDLE handle)
+static void my_IoTHubModuleClient_LL_MethodHandle_Destroy(IOTHUB_CLIENT_EDGE_HANDLE handle)
 {
     my_gballoc_free(handle);
 }
@@ -715,7 +715,7 @@ TEST_SUITE_INITIALIZE(suite_init)
 #endif // DONT_USE_UPLOADTOBLOB
 
 #ifdef USE_EDGE_MODULES
-    REGISTER_UMOCK_ALIAS_TYPE(IOTHUB_MODULE_CLIENT_METHOD_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(IOTHUB_CLIENT_EDGE_HANDLE, void*);
 #endif // USE_EDGE_MODULES
 
     REGISTER_GLOBAL_MOCK_RETURN(IoTHubClient_GetVersionString, "version 1.0");
@@ -763,11 +763,11 @@ TEST_SUITE_INITIALIZE(suite_init)
 #endif
 
 #ifdef USE_EDGE_MODULES
-    REGISTER_GLOBAL_MOCK_HOOK(IoTHubModuleClient_LL_MethodHandle_Destroy, my_IoTHubModuleClient_LL_MethodHandle_Destroy);
-    REGISTER_GLOBAL_MOCK_HOOK(IoTHubModuleClient_LL_MethodHandle_Create, my_IoTHubModuleClient_LL_MethodHandle_Create);
-    REGISTER_GLOBAL_MOCK_FAIL_RETURN(IoTHubModuleClient_LL_MethodHandle_Create, NULL);
-    REGISTER_GLOBAL_MOCK_RETURN(IoTHubModuleClient_LL_GenericMethodInvoke, IOTHUB_CLIENT_OK);
-    REGISTER_GLOBAL_MOCK_FAIL_RETURN(IoTHubModuleClient_LL_GenericMethodInvoke, IOTHUB_CLIENT_ERROR);
+    REGISTER_GLOBAL_MOCK_HOOK(IoTHubClient_EdgeHandle_Destroy, my_IoTHubModuleClient_LL_MethodHandle_Destroy);
+    REGISTER_GLOBAL_MOCK_HOOK(IoTHubClient_EdgeHandle_Create, my_IoTHubModuleClient_LL_MethodHandle_Create);
+    REGISTER_GLOBAL_MOCK_FAIL_RETURN(IoTHubClient_EdgeHandle_Create, NULL);
+    REGISTER_GLOBAL_MOCK_RETURN(IoTHubClient_Edge_ModuleMethodInvoke, IOTHUB_CLIENT_OK);
+    REGISTER_GLOBAL_MOCK_FAIL_RETURN(IoTHubClient_Edge_ModuleMethodInvoke, IOTHUB_CLIENT_ERROR);
 #endif
 
     REGISTER_GLOBAL_MOCK_RETURN(iothub_security_init, 0);
@@ -929,7 +929,7 @@ static void setup_IoTHubClientCore_LL_create_mocks(bool use_device_config, bool 
 #ifdef USE_EDGE_MODULES
         if (is_module)
         {
-            STRICT_EXPECTED_CALL(IoTHubModuleClient_LL_MethodHandle_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+            STRICT_EXPECTED_CALL(IoTHubClient_EdgeHandle_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
         }
 #endif /*USE_EDGE_MODULES*/
 
@@ -1822,7 +1822,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_CreateWithTransport_create_tickcounter_fails_s
     STRICT_EXPECTED_CALL(IoTHubClient_LL_UploadToBlob_Destroy(IGNORED_PTR_ARG));
 #endif /*DONT_USE_UPLOADTOBLOB*/
 #ifdef USE_EDGE_MODULES
-    STRICT_EXPECTED_CALL(IoTHubModuleClient_LL_MethodHandle_Destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(IoTHubClient_EdgeHandle_Destroy(IGNORED_PTR_ARG));
 #endif /*USE_EDGE_MODULES*/
     STRICT_EXPECTED_CALL(IoTHubClient_Auth_Destroy(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
@@ -1878,7 +1878,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_CreateWithTransport_register_fails_shared_tran
     STRICT_EXPECTED_CALL(IoTHubClient_LL_UploadToBlob_Destroy(IGNORED_PTR_ARG));
 #endif /*DONT_USE_UPLOADTOBLOB*/
 #ifdef USE_EDGE_MODULES
-    STRICT_EXPECTED_CALL(IoTHubModuleClient_LL_MethodHandle_Destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(IoTHubClient_EdgeHandle_Destroy(IGNORED_PTR_ARG));
 #endif /*USE_EDGE_MODULES*/
     STRICT_EXPECTED_CALL(tickcounter_destroy(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
@@ -1936,7 +1936,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_CreateWithTransport_set_retry_policy_fails_sha
     STRICT_EXPECTED_CALL(IoTHubClient_LL_UploadToBlob_Destroy(IGNORED_PTR_ARG));
 #endif /*DONT_USE_UPLOADTOBLOB*/
 #ifdef USE_EDGE_MODULES
-    STRICT_EXPECTED_CALL(IoTHubModuleClient_LL_MethodHandle_Destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(IoTHubClient_EdgeHandle_Destroy(IGNORED_PTR_ARG));
 #endif /*USE_EDGE_MODULES*/
     STRICT_EXPECTED_CALL(tickcounter_destroy(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
@@ -1993,7 +1993,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_Destroys_the_underlying_transport_succeeds)
     STRICT_EXPECTED_CALL(IoTHubClient_LL_UploadToBlob_Destroy(IGNORED_PTR_ARG));
 #endif
 #ifdef USE_EDGE_MODULES
-    STRICT_EXPECTED_CALL(IoTHubModuleClient_LL_MethodHandle_Destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(IoTHubClient_EdgeHandle_Destroy(IGNORED_PTR_ARG));
 #endif
 
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
@@ -2029,7 +2029,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_Destroys_unregisters_but_does_not_destroy_tran
     STRICT_EXPECTED_CALL(IoTHubClient_LL_UploadToBlob_Destroy(IGNORED_PTR_ARG));
 #endif
 #ifdef USE_EDGE_MODULES
-    STRICT_EXPECTED_CALL(IoTHubModuleClient_LL_MethodHandle_Destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(IoTHubClient_EdgeHandle_Destroy(IGNORED_PTR_ARG));
 #endif
 
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
@@ -2146,7 +2146,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_Destroy_after_sendEvent_succeeds)
     STRICT_EXPECTED_CALL(IoTHubClient_LL_UploadToBlob_Destroy(IGNORED_PTR_ARG));
 #endif
 #ifdef USE_EDGE_MODULES
-    STRICT_EXPECTED_CALL(IoTHubModuleClient_LL_MethodHandle_Destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(IoTHubClient_EdgeHandle_Destroy(IGNORED_PTR_ARG));
 #endif
 
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));

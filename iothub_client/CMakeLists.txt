@@ -22,7 +22,7 @@ set(iothub_client_c_files
     ./src/iothub_message.c
     ./src/iothub_module_client.c
     ./src/iothub_module_client_ll.c
-    ./src/iothub_module_client_ll_method.c
+    ./src/iothub_client_edge.c
     ./src/iothubtransport.c
     ./src/version.c
 )
@@ -42,7 +42,7 @@ set(iothub_client_h_files
     ./inc/iothub_device_client_ll.h
     ./inc/iothub_module_client.h
     ./inc/iothub_module_client_ll.h
-    ./inc/internal/iothub_module_client_ll_method.h
+    ./inc/internal/iothub_client_edge.h
     ./inc/iothub_transport_ll.h
     ./inc/iothub_message.h
     ./inc/internal/iothubtransport.h

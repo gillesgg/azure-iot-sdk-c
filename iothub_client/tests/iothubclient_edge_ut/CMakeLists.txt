@@ -1,12 +1,12 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#this is CMakeLists.txt for iothubmoduleclient_method_ut
+#this is CMakeLists.txt for iothubclient_edge_ut
 cmake_minimum_required(VERSION 2.8.11)
 
 compileAsC11()
 
-set(theseTestsName iothubmoduleclient_method_ut)
+set(theseTestsName iothubclient_edge_ut)
 
 set(${theseTestsName}_test_files
     ${theseTestsName}.c
@@ -15,7 +15,7 @@ set(${theseTestsName}_test_files
 include_directories(${SHARED_UTIL_REAL_TEST_FOLDER})
 
 set(${theseTestsName}_c_files
-    ../../src/iothub_module_client_ll_method.c
+    ../../src/iothub_client_edge.c
 )
 
 set(${theseTestsName}_h_files

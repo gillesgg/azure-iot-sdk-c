@@ -2326,7 +2326,7 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_SetInputMessageCallback(IOTHUB_CLIENT_CORE
 
 /* Temporary function until replacement during iothub_client refactor*/
 
-IOTHUB_CLIENT_RESULT IoTHubClientCore_GateToGenericMethodInvoke(IOTHUB_CLIENT_CORE_HANDLE iotHubClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+IOTHUB_CLIENT_RESULT IoTHubClientCore_GenericMethodInvoke(IOTHUB_CLIENT_CORE_HANDLE iotHubClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
     IOTHUB_CLIENT_RESULT result;
     if (iotHubClientHandle == NULL)
@@ -2341,7 +2341,7 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_GateToGenericMethodInvoke(IOTHUB_CLIENT_CO
     }
     else
     {
-        result = IoTHubClientCore_LL_GateToGenericMethodInvoke(iotHubClientHandle->IoTHubClientLLHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+        result = IoTHubClientCore_LL_GenericMethodInvoke(iotHubClientHandle->IoTHubClientLLHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
         (void)Unlock(iotHubClientHandle->LockHandle);
     }
 

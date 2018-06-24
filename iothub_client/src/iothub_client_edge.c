@@ -16,7 +16,7 @@
 #include "iothub_client_authorization.h"
 #include "iothub_client_core_common.h"
 #include "iothub_client_version.h"
-#include "iothub_module_client_ll_method.h"
+#include "iothub_client_edge.h"
 
 #define  HTTP_HEADER_KEY_AUTHORIZATION  "Authorization"
 #define  HTTP_HEADER_VAL_AUTHORIZATION  " "
@@ -37,58 +37,58 @@ static const char* const RELATIVE_PATH_FMT_DEVICE_METHOD = "/twins/%s/methods%s"
 static const char* const PAYLOAD_FMT = "{\"methodName\":\"%s\",\"timeout\":%d,\"payload\":%s}";
 static const char* const SCOPE_FMT = "%s/devices/%s/modules/%s";
 
-typedef struct IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA_TAG
+typedef struct IOTHUB_CLIENT_EDGE_HANDLE_DATA_TAG
 {
     char* hostname;
     char* deviceId;
     char* moduleId;
     IOTHUB_AUTHORIZATION_HANDLE authorizationHandle;
-} IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA;
+} IOTHUB_CLIENT_EDGE_HANDLE_DATA;
 
 
-IOTHUB_MODULE_CLIENT_METHOD_HANDLE IoTHubModuleClient_LL_MethodHandle_Create(const IOTHUB_CLIENT_CONFIG* config, IOTHUB_AUTHORIZATION_HANDLE authorizationHandle, const char* module_id)
+IOTHUB_CLIENT_EDGE_HANDLE IoTHubClient_EdgeHandle_Create(const IOTHUB_CLIENT_CONFIG* config, IOTHUB_AUTHORIZATION_HANDLE authorizationHandle, const char* module_id)
 {
-    IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA* handleData;
+    IOTHUB_CLIENT_EDGE_HANDLE_DATA* handleData;
 
     if ((config == NULL) || (authorizationHandle == NULL) || (module_id == NULL))
     {
         LogError("input cannot be NULL");
         handleData = NULL;
     }
-    else if ((handleData = malloc(sizeof(IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA))) == NULL)
+    else if ((handleData = malloc(sizeof(IOTHUB_CLIENT_EDGE_HANDLE_DATA))) == NULL)
     {
         LogError("memory allocation error");
         handleData = NULL;
     }
     else
     {
-        memset(handleData, 0, sizeof(IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA));
+        memset(handleData, 0, sizeof(IOTHUB_CLIENT_EDGE_HANDLE_DATA));
         handleData->authorizationHandle = authorizationHandle;
 
         if (mallocAndStrcpy_s(&(handleData->deviceId), config->deviceId) != 0)
         {
             LogError("Failed to copy string");
-            IoTHubModuleClient_LL_MethodHandle_Destroy(handleData);
+            IoTHubClient_EdgeHandle_Destroy(handleData);
             handleData = NULL;
         }
         else if (mallocAndStrcpy_s(&(handleData->moduleId), module_id) != 0)
         {
             LogError("Failed to copy string");
-            IoTHubModuleClient_LL_MethodHandle_Destroy(handleData);
+            IoTHubClient_EdgeHandle_Destroy(handleData);
             handleData = NULL;
         }
         else if (mallocAndStrcpy_s(&(handleData->hostname), config->protocolGatewayHostName) != 0)
         {
             LogError("Failed to copy string");
-            IoTHubModuleClient_LL_MethodHandle_Destroy(handleData);
+            IoTHubClient_EdgeHandle_Destroy(handleData);
             handleData = NULL;
         }
     }
 
-    return (IOTHUB_MODULE_CLIENT_METHOD_HANDLE)handleData;
+    return (IOTHUB_CLIENT_EDGE_HANDLE)handleData;
 }
 
-void IoTHubModuleClient_LL_MethodHandle_Destroy(IOTHUB_MODULE_CLIENT_METHOD_HANDLE methodHandle)
+void IoTHubClient_EdgeHandle_Destroy(IOTHUB_CLIENT_EDGE_HANDLE methodHandle)
 {
     if (methodHandle != NULL)
     {
@@ -174,7 +174,7 @@ static HTTP_HEADERS_HANDLE createHttpHeader()
     return httpHeader;
 }
 
-static IOTHUB_CLIENT_RESULT populateHttpHeader(HTTP_HEADERS_HANDLE httpHeader,  IOTHUB_MODULE_CLIENT_METHOD_HANDLE moduleMethodHandle)
+static IOTHUB_CLIENT_RESULT populateHttpHeader(HTTP_HEADERS_HANDLE httpHeader,  IOTHUB_CLIENT_EDGE_HANDLE moduleMethodHandle)
 {
     IOTHUB_CLIENT_RESULT result;
     STRING_HANDLE scope;
@@ -365,7 +365,7 @@ static STRING_HANDLE createRelativePath(const char* deviceId, const char* module
     return result;
 }
 
-static IOTHUB_CLIENT_RESULT sendHttpRequestMethod(IOTHUB_MODULE_CLIENT_METHOD_HANDLE moduleMethodHandle, const char* deviceId, const char* moduleId, BUFFER_HANDLE deviceJsonBuffer, BUFFER_HANDLE responseBuffer)
+static IOTHUB_CLIENT_RESULT sendHttpRequestMethod(IOTHUB_CLIENT_EDGE_HANDLE moduleMethodHandle, const char* deviceId, const char* moduleId, BUFFER_HANDLE deviceJsonBuffer, BUFFER_HANDLE responseBuffer)
 {
     IOTHUB_CLIENT_RESULT result;
 
@@ -448,7 +448,50 @@ static IOTHUB_CLIENT_RESULT sendHttpRequestMethod(IOTHUB_MODULE_CLIENT_METHOD_HA
     return result;
 }
 
-IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_GenericMethodInvoke(IOTHUB_MODULE_CLIENT_METHOD_HANDLE moduleMethodHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+static IOTHUB_CLIENT_RESULT IoTHubClient_Edge_GenericMethodInvoke(IOTHUB_CLIENT_EDGE_HANDLE moduleMethodHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+{
+    IOTHUB_CLIENT_RESULT result;
+
+    BUFFER_HANDLE httpPayloadBuffer;
+    BUFFER_HANDLE responseBuffer;
+
+    if ((httpPayloadBuffer = createMethodPayloadJson(methodName, timeout, methodPayload)) == NULL)
+    {
+        LogError("BUFFER creation failed for httpPayloadBuffer");
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if ((responseBuffer = BUFFER_new()) == NULL)
+    {
+        LogError("BUFFER_new failed for responseBuffer");
+        BUFFER_delete(httpPayloadBuffer);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if (sendHttpRequestMethod(moduleMethodHandle, deviceId, moduleId, httpPayloadBuffer, responseBuffer) != IOTHUB_CLIENT_OK)
+    {
+        LogError("Failure sending HTTP request for device method invoke");
+        BUFFER_delete(responseBuffer);
+        BUFFER_delete(httpPayloadBuffer);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if ((parseResponseJson(responseBuffer, responseStatus, responsePayload, responsePayloadSize)) != IOTHUB_CLIENT_OK)
+    {
+        LogError("Failure parsing response");
+        BUFFER_delete(responseBuffer);
+        BUFFER_delete(httpPayloadBuffer);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else
+    {
+        result = IOTHUB_CLIENT_OK;
+
+        BUFFER_delete(responseBuffer);
+        BUFFER_delete(httpPayloadBuffer);
+    }
+
+    return result;
+}
+
+IOTHUB_CLIENT_RESULT IoTHubClient_Edge_DeviceMethodInvoke(IOTHUB_CLIENT_EDGE_HANDLE moduleMethodHandle, const char* deviceId,  const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
     IOTHUB_CLIENT_RESULT result;
 
@@ -459,41 +502,23 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_GenericMethodInvoke(IOTHUB_MODULE_CLI
     }
     else
     {
-        BUFFER_HANDLE httpPayloadBuffer;
-        BUFFER_HANDLE responseBuffer;
+        result = IoTHubClient_Edge_GenericMethodInvoke(moduleMethodHandle, deviceId, NULL, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+    }
+    return result;
+}
 
-        if ((httpPayloadBuffer = createMethodPayloadJson(methodName, timeout, methodPayload)) == NULL)
-        {
-            LogError("BUFFER creation failed for httpPayloadBuffer");
-            result = IOTHUB_CLIENT_ERROR;
-        }
-        else if ((responseBuffer = BUFFER_new()) == NULL)
-        {
-            LogError("BUFFER_new failed for responseBuffer");
-            BUFFER_delete(httpPayloadBuffer);
-            result = IOTHUB_CLIENT_ERROR;
-        }
-        else if (sendHttpRequestMethod(moduleMethodHandle, deviceId, moduleId, httpPayloadBuffer, responseBuffer) != IOTHUB_CLIENT_OK)
-        {
-            LogError("Failure sending HTTP request for device method invoke");
-            BUFFER_delete(responseBuffer);
-            BUFFER_delete(httpPayloadBuffer);
-            result = IOTHUB_CLIENT_ERROR;
-        }
-        else if ((parseResponseJson(responseBuffer, responseStatus, responsePayload, responsePayloadSize)) != IOTHUB_CLIENT_OK)
-        {
-            LogError("Failure parsing response");
-            BUFFER_delete(responseBuffer);
-            BUFFER_delete(httpPayloadBuffer);
-            result = IOTHUB_CLIENT_ERROR;
-        }
-        else
-        {
-            result = IOTHUB_CLIENT_OK;
+IOTHUB_CLIENT_RESULT IoTHubClient_Edge_ModuleMethodInvoke(IOTHUB_CLIENT_EDGE_HANDLE moduleMethodHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+{
+    IOTHUB_CLIENT_RESULT result;
 
-            BUFFER_delete(responseBuffer);
-            BUFFER_delete(httpPayloadBuffer);
-        }
+    if ((moduleMethodHandle == NULL) || (deviceId == NULL) || (moduleId == NULL) || (methodName == NULL) || (methodPayload == NULL) || (responseStatus == NULL) || (responsePayload == NULL) || (responsePayloadSize == NULL))
+    {
+        LogError("Input parameter cannot be NULL");
+        result = IOTHUB_CLIENT_INVALID_ARG;
+    }
+    else
+    {
+        result = IoTHubClient_Edge_GenericMethodInvoke(moduleMethodHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
     }
     return result;
 }

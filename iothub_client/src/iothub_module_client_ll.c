@@ -13,7 +13,7 @@
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/envvariable.h"
 
-#include "internal/iothub_module_client_ll_method.h"
+#include "internal/iothub_client_edge.h"
 #include "iothub_client_core_ll.h"
 #include "iothub_client_authorization.h"
 #include "iothub_module_client_ll.h"
@@ -32,7 +32,7 @@
 typedef struct IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA_TAG
 {
     IOTHUB_CLIENT_CORE_LL_HANDLE coreHandle;
-    IOTHUB_MODULE_CLIENT_METHOD_HANDLE methodHandle;
+    IOTHUB_CLIENT_EDGE_HANDLE methodHandle;
 } IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA;
 
 
@@ -321,7 +321,7 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_DeviceMethodInvoke(IOTHUB_MODULE_CLIE
 
     if (iotHubModuleClientHandle != NULL)
     {
-        result = IoTHubModuleClient_LL_GenericMethodInvoke(iotHubModuleClientHandle->methodHandle, deviceId, NULL, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+        result = IoTHubClient_Edge_DeviceMethodInvoke(iotHubModuleClientHandle->methodHandle, deviceId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
     }
     else
     {
@@ -337,7 +337,7 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_ModuleMethodInvoke(IOTHUB_MODULE_CLIE
 
     if ((iotHubModuleClientHandle != NULL) && (moduleId != NULL))
     {
-        result = IoTHubModuleClient_LL_GenericMethodInvoke(iotHubModuleClientHandle->methodHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+        result = IoTHubClient_Edge_ModuleMethodInvoke(iotHubModuleClientHandle->methodHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
     }
     else
     {

@@ -6,6 +6,6 @@
 int main(void)
 {
     size_t failedTestCount = 0;
-    RUN_TEST_SUITE(iothubmoduleclient_method_ut, failedTestCount);
+    RUN_TEST_SUITE(iothubclient_edge_ut, failedTestCount);
     return failedTestCount;
 }

@@ -31,7 +31,7 @@
 #include "internal/iothub_client_ll_uploadtoblob.h"
 #endif
 
-#include "internal/iothub_module_client_ll_method.h"
+#include "internal/iothub_client_edge.h"
 
 #define LOG_ERROR_RESULT LogError("result = %s", ENUM_TO_STRING(IOTHUB_CLIENT_RESULT, result));
 #define INDEFINITE_TIME ((time_t)(-1))
@@ -109,7 +109,7 @@ typedef struct IOTHUB_CLIENT_CORE_LL_HANDLE_DATA_TAG
 #ifndef DONT_USE_UPLOADTOBLOB
     IOTHUB_CLIENT_LL_UPLOADTOBLOB_HANDLE uploadToBlobHandle;
 #endif
-    IOTHUB_MODULE_CLIENT_METHOD_HANDLE methodHandle;
+    IOTHUB_CLIENT_EDGE_HANDLE methodHandle;
     uint32_t data_msg_id;
     bool complete_twin_update_encountered;
     IOTHUB_AUTHORIZATION_HANDLE authorization_module;
@@ -227,9 +227,9 @@ static int retrieve_edge_environment_variabes(EDGE_ENVIRONMENT_VARIABLES *edge_e
 }
 /* end */
 
-IOTHUB_MODULE_CLIENT_METHOD_HANDLE IoTHubClientCore_LL_GetMethodHandle(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle)
+IOTHUB_CLIENT_EDGE_HANDLE IoTHubClientCore_LL_GetMethodHandle(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle)
 {
-    IOTHUB_MODULE_CLIENT_METHOD_HANDLE result;
+    IOTHUB_CLIENT_EDGE_HANDLE result;
     if (iotHubClientHandle != NULL)
     {
         result = iotHubClientHandle->methodHandle;
@@ -279,7 +279,7 @@ static int create_module_method_module(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle
     (void)config;
     (void)module_id;
 #ifdef USE_EDGE_MODULES
-    handle_data->methodHandle = IoTHubModuleClient_LL_MethodHandle_Create(config, handle_data->authorization_module, module_id);
+    handle_data->methodHandle = IoTHubClient_EdgeHandle_Create(config, handle_data->authorization_module, module_id);
     if (handle_data->methodHandle == NULL)
     {
         LogError("Unable to IoTHubModuleClient_LL_MethodHandle_Create");
@@ -330,7 +330,7 @@ static void destroy_module_method_module(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* hand
 {
     (void)handle_data;
 #ifdef USE_EDGE_MODULES
-    IoTHubModuleClient_LL_MethodHandle_Destroy(handle_data->methodHandle);
+    IoTHubClient_EdgeHandle_Destroy(handle_data->methodHandle);
 #endif
 }
 
@@ -1287,7 +1287,7 @@ void IoTHubClientCore_LL_Destroy(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle
         IoTHubClient_LL_UploadToBlob_Destroy(handleData->uploadToBlobHandle);
 #endif
 #ifdef USE_EDGE_MODULES
-        IoTHubModuleClient_LL_MethodHandle_Destroy(handleData->methodHandle);
+        IoTHubClient_EdgeHandle_Destroy(handleData->methodHandle);
 #endif
         STRING_delete(handleData->product_info);
         free(handleData);
@@ -2790,12 +2790,20 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_LL_SetInputMessageCallback(IOTHUB_CLIENT_C
 }
 
 /* These should be replaced during iothub_client refactor */
-IOTHUB_CLIENT_RESULT IoTHubClientCore_LL_GateToGenericMethodInvoke(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+IOTHUB_CLIENT_RESULT IoTHubClientCore_LL_GenericMethodInvoke(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
     IOTHUB_CLIENT_RESULT result;
     if (iotHubClientHandle != NULL)
     {
-        result = IoTHubModuleClient_LL_GenericMethodInvoke(iotHubClientHandle->methodHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+        if (moduleId != NULL)
+        {
+            result = IoTHubClient_Edge_ModuleMethodInvoke(iotHubClientHandle->methodHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+        }
+        else
+        {
+            result = IoTHubClient_Edge_DeviceMethodInvoke(iotHubClientHandle->methodHandle, deviceId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+
+        }
     }
     else
     {
