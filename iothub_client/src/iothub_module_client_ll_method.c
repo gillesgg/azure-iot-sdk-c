@@ -8,6 +8,7 @@
 #include "azure_c_shared_utility/httpapiexsas.h"
 #include "azure_c_shared_utility/uniqueid.h"
 #include "azure_c_shared_utility/shared_util_options.h"
+#include "azure_c_shared_utility/crt_abstractions.h"
 
 #include "parson.h"
 
@@ -38,9 +39,9 @@ static const char* const SCOPE_FMT = "%s/devices/%s/modules/%s";
 
 typedef struct IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA_TAG
 {
-    const char* hostname;
-    const char* deviceId;
-    const char* moduleId;
+    char* hostname;
+    char* deviceId;
+    char* moduleId;
     IOTHUB_AUTHORIZATION_HANDLE authorizationHandle;
 } IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA;
 
@@ -49,7 +50,7 @@ IOTHUB_MODULE_CLIENT_METHOD_HANDLE IoTHubModuleClient_LL_MethodHandle_Create(con
 {
     IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA* handleData;
 
-    if ((config == NULL) || (authorizationHandle == NULL))
+    if ((config == NULL) || (authorizationHandle == NULL) || (module_id == NULL))
     {
         LogError("input cannot be NULL");
         handleData = NULL;
@@ -57,13 +58,31 @@ IOTHUB_MODULE_CLIENT_METHOD_HANDLE IoTHubModuleClient_LL_MethodHandle_Create(con
     else if ((handleData = malloc(sizeof(IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA))) == NULL)
     {
         LogError("memory allocation error");
+        handleData = NULL;
     }
     else
     {
+        memset(handleData, 0, sizeof(IOTHUB_MODULE_CLIENT_METHOD_HANDLE_DATA));
         handleData->authorizationHandle = authorizationHandle;
-        handleData->deviceId = config->deviceId;
-        handleData->moduleId = module_id;
-        handleData->hostname = config->protocolGatewayHostName;
+
+        if (mallocAndStrcpy_s(&(handleData->deviceId), config->deviceId) != 0)
+        {
+            LogError("Failed to copy string");
+            IoTHubModuleClient_LL_MethodHandle_Destroy(handleData);
+            handleData = NULL;
+        }
+        else if (mallocAndStrcpy_s(&(handleData->moduleId), module_id) != 0)
+        {
+            LogError("Failed to copy string");
+            IoTHubModuleClient_LL_MethodHandle_Destroy(handleData);
+            handleData = NULL;
+        }
+        else if (mallocAndStrcpy_s(&(handleData->hostname), config->protocolGatewayHostName) != 0)
+        {
+            LogError("Failed to copy string");
+            IoTHubModuleClient_LL_MethodHandle_Destroy(handleData);
+            handleData = NULL;
+        }
     }
 
     return (IOTHUB_MODULE_CLIENT_METHOD_HANDLE)handleData;
@@ -73,6 +92,10 @@ void IoTHubModuleClient_LL_MethodHandle_Destroy(IOTHUB_MODULE_CLIENT_METHOD_HAND
 {
     if (methodHandle != NULL)
     {
+        free(methodHandle->hostname);
+        free(methodHandle->deviceId);
+        free(methodHandle->moduleId);
+        //Do not free authorizationHandle for now, since its a pointer to something owned by Core_LL_Handle
         free(methodHandle);
     }
 }
@@ -149,6 +172,80 @@ static HTTP_HEADERS_HANDLE createHttpHeader()
     }
 
     return httpHeader;
+}
+
+static IOTHUB_CLIENT_RESULT populateHttpHeader(HTTP_HEADERS_HANDLE httpHeader,  IOTHUB_MODULE_CLIENT_METHOD_HANDLE moduleMethodHandle)
+{
+    IOTHUB_CLIENT_RESULT result;
+    STRING_HANDLE scope;
+    const char* scope_s;
+    STRING_HANDLE moduleHeader;
+    const char* moduleHeader_s;
+    char* sastoken;
+
+    if ((scope = STRING_construct_sprintf(SCOPE_FMT, moduleMethodHandle->hostname, moduleMethodHandle->deviceId, moduleMethodHandle->moduleId)) == NULL)
+    {
+        LogError("Failed constructing scope");
+        HTTPHeaders_Free(httpHeader);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if ((scope_s = STRING_c_str(scope)) == NULL)
+    {
+        LogError("SasToken generation failed");
+        HTTPHeaders_Free(httpHeader);
+        STRING_delete(scope);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if ((sastoken = IoTHubClient_Auth_Get_SasToken(moduleMethodHandle->authorizationHandle, scope_s, SASTOKEN_LIFETIME, NULL)) == NULL)
+    {
+        LogError("SasToken generation failed");
+        HTTPHeaders_Free(httpHeader);
+        STRING_delete(scope);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if (HTTPHeaders_ReplaceHeaderNameValuePair(httpHeader, HTTP_HEADER_KEY_AUTHORIZATION, sastoken) != HTTP_HEADERS_OK)
+    {
+        LogError("Failure updating Http Headers");
+        HTTPHeaders_Free(httpHeader);
+        STRING_delete(scope);
+        free(sastoken);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if ((moduleHeader = STRING_construct_sprintf("%s/%s", moduleMethodHandle->deviceId, moduleMethodHandle->moduleId)) == NULL)
+    {
+        LogError("Failure updating Http Headers");
+        HTTPHeaders_Free(httpHeader);
+        STRING_delete(scope);
+        free(sastoken);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if ((moduleHeader_s = STRING_c_str(moduleHeader)) == NULL)
+    {
+        LogError("Failure updating Http Headers");
+        HTTPHeaders_Free(httpHeader);
+        STRING_delete(scope);
+        free(sastoken);
+        STRING_delete(moduleHeader);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if (HTTPHeaders_ReplaceHeaderNameValuePair(httpHeader, HTTP_HEADER_KEY_MODULE_ID, moduleHeader_s) != HTTP_HEADERS_OK)
+    {
+        LogError("Failure updating Http Headers");
+        HTTPHeaders_Free(httpHeader);
+        STRING_delete(scope);
+        free(sastoken);
+        STRING_delete(moduleHeader);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else
+    {
+        STRING_delete(scope);
+        STRING_delete(moduleHeader);
+        free(sastoken);
+        result = IOTHUB_CLIENT_OK;
+    }
+
+    return result;
 }
 
 static IOTHUB_CLIENT_RESULT parseResponseJson(BUFFER_HANDLE responseJson, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
@@ -275,9 +372,7 @@ static IOTHUB_CLIENT_RESULT sendHttpRequestMethod(IOTHUB_MODULE_CLIENT_METHOD_HA
     HTTPAPIEX_HANDLE httpExApiHandle;
     HTTP_HEADERS_HANDLE httpHeader;
     STRING_HANDLE relativePath;
-    STRING_HANDLE scope;
-    STRING_HANDLE moduleHeader;
-    char* sastoken;
+    const char* relativePath_s;
     char* trustedCertificate;
     unsigned int statusCode = 0;
 
@@ -286,60 +381,28 @@ static IOTHUB_CLIENT_RESULT sendHttpRequestMethod(IOTHUB_MODULE_CLIENT_METHOD_HA
         LogError("HttpHeader creation failed");
         result = IOTHUB_CLIENT_ERROR;
     }
-    else if ((scope = STRING_construct_sprintf(SCOPE_FMT, moduleMethodHandle->hostname, moduleMethodHandle->deviceId, moduleMethodHandle->moduleId)) == NULL)
+    else if (populateHttpHeader(httpHeader, moduleMethodHandle) != IOTHUB_CLIENT_OK)
     {
-        LogError("Failed constructing scope");
-        HTTPHeaders_Free(httpHeader);
-        result = IOTHUB_CLIENT_ERROR;
-    }
-    else if ((sastoken = IoTHubClient_Auth_Get_SasToken(moduleMethodHandle->authorizationHandle, STRING_c_str(scope), SASTOKEN_LIFETIME, NULL)) == NULL)
-    {
-        LogError("SasToken generation failed");
-        HTTPHeaders_Free(httpHeader);
-        STRING_delete(scope);
-        result = IOTHUB_CLIENT_ERROR;
-    }
-    else if (HTTPHeaders_ReplaceHeaderNameValuePair(httpHeader, HTTP_HEADER_KEY_AUTHORIZATION, sastoken) != HTTP_HEADERS_OK)
-    {
-        LogError("Failure updating Http Headers");
-        HTTPHeaders_Free(httpHeader);
-        STRING_delete(scope);
-        free(sastoken);
-        result = IOTHUB_CLIENT_ERROR;
-    }
-    else if ((moduleHeader = STRING_construct_sprintf("%s/%s", moduleMethodHandle->deviceId, moduleMethodHandle->moduleId)) == NULL)
-    {
-        LogError("Failure updating Http Headers");
-        HTTPHeaders_Free(httpHeader);
-        STRING_delete(scope);
-        free(sastoken);
-        result = IOTHUB_CLIENT_ERROR;
-    }
-    else if (HTTPHeaders_ReplaceHeaderNameValuePair(httpHeader, HTTP_HEADER_KEY_MODULE_ID, STRING_c_str(moduleHeader)) != HTTP_HEADERS_OK)
-    {
-        LogError("Failure updating Http Headers");
-        HTTPHeaders_Free(httpHeader);
-        STRING_delete(scope);
-        free(sastoken);
-        STRING_delete(moduleHeader);
+        LogError("HttpHeader creation failed");
         result = IOTHUB_CLIENT_ERROR;
     }
     else if ((relativePath = createRelativePath(deviceId, moduleId)) == NULL)
     {
         LogError("Failure creating relative path");
         HTTPHeaders_Free(httpHeader);
-        STRING_delete(scope);
-        free(sastoken);
-        STRING_delete(moduleHeader);
+        result = IOTHUB_CLIENT_ERROR;
+    }
+    else if ((relativePath_s = STRING_c_str(relativePath)) == NULL)
+    {
+        LogError("HTTPAPIEX_Create failed");
+        HTTPHeaders_Free(httpHeader);
+        STRING_delete(relativePath);
         result = IOTHUB_CLIENT_ERROR;
     }
     else if ((httpExApiHandle = HTTPAPIEX_Create(moduleMethodHandle->hostname)) == NULL)
     {
         LogError("HTTPAPIEX_Create failed");
         HTTPHeaders_Free(httpHeader);
-        STRING_delete(scope);
-        free(sastoken);
-        STRING_delete(moduleHeader);
         STRING_delete(relativePath);
         result = IOTHUB_CLIENT_ERROR;
     }
@@ -347,9 +410,6 @@ static IOTHUB_CLIENT_RESULT sendHttpRequestMethod(IOTHUB_MODULE_CLIENT_METHOD_HA
     {
         LogError("Failed to get TrustBundle");
         HTTPHeaders_Free(httpHeader);
-        STRING_delete(scope);
-        free(sastoken);
-        STRING_delete(moduleHeader);
         STRING_delete(relativePath);
         HTTPAPIEX_Destroy(httpExApiHandle);
         result = IOTHUB_CLIENT_ERROR;
@@ -361,7 +421,7 @@ static IOTHUB_CLIENT_RESULT sendHttpRequestMethod(IOTHUB_MODULE_CLIENT_METHOD_HA
             LogError("Setting trusted certificate failed");
             result = IOTHUB_CLIENT_ERROR;
         }
-        else if (HTTPAPIEX_ExecuteRequest(httpExApiHandle, HTTPAPI_REQUEST_POST, STRING_c_str(relativePath), httpHeader, deviceJsonBuffer, &statusCode, NULL, responseBuffer) != HTTPAPIEX_OK)
+        else if (HTTPAPIEX_ExecuteRequest(httpExApiHandle, HTTPAPI_REQUEST_POST, relativePath_s, httpHeader, deviceJsonBuffer, &statusCode, NULL, responseBuffer) != HTTPAPIEX_OK)
         {
                 LogError("HTTPAPIEX_ExecuteRequest failed");
                 result = IOTHUB_CLIENT_ERROR;
@@ -380,9 +440,6 @@ static IOTHUB_CLIENT_RESULT sendHttpRequestMethod(IOTHUB_MODULE_CLIENT_METHOD_HA
         }
 
         HTTPHeaders_Free(httpHeader);
-        STRING_delete(scope);
-        free(sastoken);
-        STRING_delete(moduleHeader);
         STRING_delete(relativePath);
         HTTPAPIEX_Destroy(httpExApiHandle);
         free(trustedCertificate);
@@ -395,7 +452,7 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_GenericMethodInvoke(IOTHUB_MODULE_CLI
 {
     IOTHUB_CLIENT_RESULT result;
 
-    if ((moduleMethodHandle == NULL) || (deviceId == NULL) || (moduleId == NULL) || (methodName == NULL) || (methodPayload == NULL) || (responseStatus == NULL) || (responsePayload == NULL) || (responsePayloadSize == NULL))
+    if ((moduleMethodHandle == NULL) || (deviceId == NULL) || (methodName == NULL) || (methodPayload == NULL) || (responseStatus == NULL) || (responsePayload == NULL) || (responsePayloadSize == NULL))
     {
         LogError("Input parameter cannot be NULL");
         result = IOTHUB_CLIENT_INVALID_ARG;

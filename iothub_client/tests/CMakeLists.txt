@@ -56,6 +56,7 @@ add_unittest_directory(message_queue_ut)
 
 add_unittest_directory(iothubmoduleclient_ll_ut)
 add_unittest_directory(iothubmoduleclient_ut)
+add_unittest_directory(iothubmoduleclient_method_ut)
 
 if(${use_http})
     add_unittest_directory(iothubtransporthttp_ut)
