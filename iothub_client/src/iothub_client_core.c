@@ -14,7 +14,6 @@
 #include "internal/iothubtransport.h"
 #include "internal/iothub_client_private.h"
 #include "internal/iothubtransport.h"
-#include "iothub_module_client_ll.h"
 #include "azure_c_shared_utility/threadapi.h"
 #include "azure_c_shared_utility/lock.h"
 #include "azure_c_shared_utility/xlogging.h"

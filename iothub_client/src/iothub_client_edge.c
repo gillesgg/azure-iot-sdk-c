@@ -16,7 +16,7 @@
 #include "iothub_client_authorization.h"
 #include "iothub_client_core_common.h"
 #include "iothub_client_version.h"
-#include "iothub_client_edge.h"
+#include "internal/iothub_client_edge.h"
 
 #define  HTTP_HEADER_KEY_AUTHORIZATION  "Authorization"
 #define  HTTP_HEADER_VAL_AUTHORIZATION  " "
@@ -119,7 +119,6 @@ static const char* generateGuid(void)
 
 static HTTP_HEADERS_HANDLE createHttpHeader()
 {
-    /*Codes_SRS_IOTHUBDEVICEMETHOD_12_020: [ IoTHubDeviceMethod_GetTwin shall add the following headers to the created HTTP GET request: authorization=sasToken,Request-Id=1001,Accept=application/json,Content-Type=application/json,charset=utf-8 ]*/
     HTTP_HEADERS_HANDLE httpHeader;
     const char* guid;
 
@@ -423,8 +422,8 @@ static IOTHUB_CLIENT_RESULT sendHttpRequestMethod(IOTHUB_CLIENT_EDGE_HANDLE modu
         }
         else if (HTTPAPIEX_ExecuteRequest(httpExApiHandle, HTTPAPI_REQUEST_POST, relativePath_s, httpHeader, deviceJsonBuffer, &statusCode, NULL, responseBuffer) != HTTPAPIEX_OK)
         {
-                LogError("HTTPAPIEX_ExecuteRequest failed");
-                result = IOTHUB_CLIENT_ERROR;
+            LogError("HTTPAPIEX_ExecuteRequest failed");
+            result = IOTHUB_CLIENT_ERROR;
         }
         else
         {

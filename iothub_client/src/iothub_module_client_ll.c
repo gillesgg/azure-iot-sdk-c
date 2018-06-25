@@ -44,43 +44,18 @@ IOTHUB_MODULE_CLIENT_LL_HANDLE IoTHubModuleClient_LL_CreateFromConnectionString(
     {
         LogError("Failed to allocate module client ll handle");
     }
-    else if ((result->coreHandle = IoTHubClientCore_LL_CreateFromConnectionString(connectionString, protocol)) == NULL)
+    else
     {
-        LogError("Failed to create core handle");
-        IoTHubModuleClient_LL_Destroy(result);
-        result = NULL;
-    }
-    else if ((result->methodHandle = IoTHubClientCore_LL_GetEdgeHandle(result->coreHandle)) == NULL)
-    {
-        LogError("Failed to set module method handle");
-        IoTHubModuleClient_LL_Destroy(result);
-        result = NULL;
-    }
+        memset(result, 0, sizeof(IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA));
 
-    return result;
-}
-
-IOTHUB_MODULE_CLIENT_LL_HANDLE IoTHubModuleClient_LL_CreateFromEnvironment(IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol)
-{
-    IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA* result;
-
-    if ((result = malloc(sizeof(IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA))) == NULL)
-    {
-        LogError("Failed to allocate module client ll handle");
+        if ((result->coreHandle = IoTHubClientCore_LL_CreateFromConnectionString(connectionString, protocol)) == NULL)
+        {
+            LogError("Failed to create core handle");
+            IoTHubModuleClient_LL_Destroy(result);
+            result = NULL;
+        }
+        result->methodHandle = NULL; //only valid if created from environment
     }
-    else if ((result->coreHandle = IoTHubClientCore_LL_CreateFromEnvironment(protocol)) == NULL)
-    {
-        LogError("Failed to create core handle");
-        IoTHubModuleClient_LL_Destroy(result);
-        result = NULL;
-    }
-    else if ((result->methodHandle = IoTHubClientCore_LL_GetEdgeHandle(result->coreHandle)) == NULL)
-    {
-        LogError("Failed to set module method handle");
-        IoTHubModuleClient_LL_Destroy(result);
-        result = NULL;
-    }
-    //}
 
     return result;
 }
@@ -253,12 +228,12 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_SendReportedState(IOTHUB_MODULE_CLIEN
     return result;
 }
 
-IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK inboundDeviceMethodCallback, void* userContextCallback)
+IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, IOTHUB_CLIENT_MODULE_METHOD_CALLBACK_ASYNC moduleMethodCallback, void* userContextCallback)
 {
     IOTHUB_CLIENT_RESULT result;
     if (iotHubModuleClientHandle != NULL)
     {
-        result = IoTHubClientCore_LL_SetDeviceMethodCallback_Ex(iotHubModuleClientHandle->coreHandle, inboundDeviceMethodCallback, userContextCallback);
+        result = IoTHubClientCore_LL_SetDeviceMethodCallback(iotHubModuleClientHandle->coreHandle, (IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC)moduleMethodCallback, userContextCallback);
     }
     else
     {
@@ -315,7 +290,36 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_SetInputMessageCallback(IOTHUB_MODULE
 
 #ifdef USE_EDGE_MODULES
 
-IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_DeviceMethodInvoke(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+IOTHUB_MODULE_CLIENT_LL_HANDLE IoTHubModuleClient_LL_CreateFromEnvironment(IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol)
+{
+    IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA* result;
+
+    if ((result = malloc(sizeof(IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA))) == NULL)
+    {
+        LogError("Failed to allocate module client ll handle");
+    }
+    else
+    {
+        memset(result, 0, sizeof(IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA));
+
+        if ((result->coreHandle = IoTHubClientCore_LL_CreateFromEnvironment(protocol)) == NULL)
+        {
+            LogError("Failed to create core handle");
+            IoTHubModuleClient_LL_Destroy(result);
+            result = NULL;
+        }
+        else if ((result->methodHandle = IoTHubClientCore_LL_GetEdgeHandle(result->coreHandle)) == NULL)
+        {
+            LogError("Failed to set module method handle");
+            IoTHubModuleClient_LL_Destroy(result);
+            result = NULL;
+        }
+    }
+
+    return result;
+}
+
+IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_DeviceMethodInvokeAsync(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
     IOTHUB_CLIENT_RESULT result;
 
@@ -331,11 +335,11 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_DeviceMethodInvoke(IOTHUB_MODULE_CLIE
     return result;
 }
 
-IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_ModuleMethodInvoke(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_ModuleMethodInvokeAsync(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
     IOTHUB_CLIENT_RESULT result;
 
-    if ((iotHubModuleClientHandle != NULL) && (moduleId != NULL))
+    if (iotHubModuleClientHandle != NULL)
     {
         result = IoTHubClient_Edge_ModuleMethodInvoke(iotHubModuleClientHandle->methodHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
     }

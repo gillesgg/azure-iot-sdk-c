@@ -14,6 +14,7 @@
 #include "azure_c_shared_utility/tickcounter.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
 
+#include "internal/iothub_client_edge.h"
 #include "iothub_message.h"
 #include "iothub_client_core_ll.h"
 #include "internal/iothub_transport_ll_private.h"
@@ -48,6 +49,11 @@ MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClientCore_LL_SendMessageDisposi
 MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClientCore_LL_GetOption, IOTHUB_CLIENT_CORE_LL_HANDLE, iotHubClientHandle, const char*, optionName, void**, value);
 MOCKABLE_FUNCTION(, bool, IoTHubClientCore_LL_MessageCallbackFromInput, IOTHUB_CLIENT_CORE_LL_HANDLE, handle, MESSAGE_CALLBACK_INFO*, message_data);
 MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClientCore_LL_SetInputMessageCallbackEx, IOTHUB_CLIENT_CORE_LL_HANDLE, iotHubClientHandle, const char*, inputName, IOTHUB_CLIENT_MESSAGE_CALLBACK_ASYNC_EX, eventHandlerCallbackEx, void *, userContextCallback, size_t, userContextCallbackLength);
+
+/* (Should be replaced after iothub_client refactor)*/
+MOCKABLE_FUNCTION(, IOTHUB_CLIENT_EDGE_HANDLE, IoTHubClientCore_LL_GetEdgeHandle, IOTHUB_CLIENT_CORE_LL_HANDLE, iotHubClientHandle);
+MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClientCore_LL_GenericMethodInvoke, IOTHUB_CLIENT_CORE_LL_HANDLE, iotHubClientHandle, const char*, deviceId, const char*, moduleId, const char*, methodName, const char*, methodPayload, unsigned int, timeout, int*, responseStatus, unsigned char**, responsePayload, size_t*, responsePayloadSize);
+
 
 typedef struct IOTHUB_MESSAGE_LIST_TAG
 {

@@ -130,7 +130,7 @@ static const char PROVISIONING_TOKEN[] = "UseProvisioning";
 static const char PROVISIONING_ACCEPTABLE_VALUE[] = "true";
 
 
-
+#ifdef USE_EDGE_MODULES
 /*The following section should be moved to iothub_module_client_ll.c during impending refactor*/
 
 static const char* ENVIRONMENT_VAR_EDGEHUBCONNECTIONSTRING = "EdgeHubConnectionString";
@@ -225,7 +225,7 @@ static int retrieve_edge_environment_variabes(EDGE_ENVIRONMENT_VARIABLES *edge_e
 
     return result;
 }
-/* end */
+#endif /* USE_EDGE_MODULES */
 
 IOTHUB_CLIENT_EDGE_HANDLE IoTHubClientCore_LL_GetEdgeHandle(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle)
 {

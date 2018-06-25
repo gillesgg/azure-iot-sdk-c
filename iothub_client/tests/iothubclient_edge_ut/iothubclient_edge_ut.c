@@ -19,6 +19,7 @@
 #include "umocktypes_bool.h"
 #include "umocktypes_stdint.h"
 
+
 static void* real_malloc(size_t size)
 {
     return malloc(size);
@@ -793,18 +794,6 @@ TEST_FUNCTION(IoTHubClient_Edge_DeviceMethodInvoke_FAIL)
 
     umock_c_negative_tests_deinit();
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 TEST_FUNCTION(IoTHubClient_Edge_ModuleMethodInvoke_NULL_ARG_moduleMethodHandle)
 {

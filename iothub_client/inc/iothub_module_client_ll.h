@@ -33,7 +33,6 @@ extern "C"
 
 #include "iothub_transport_ll.h"
 #include "iothub_client_core_common.h"
-//#include "iothub_client_core_ll.h"
 
 typedef struct IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA_TAG* IOTHUB_MODULE_CLIENT_LL_HANDLE;
 
@@ -65,18 +64,6 @@ extern "C"
     *             invoking other functions for IoT Hub client and @c NULL on failure.
     */
     MOCKABLE_FUNCTION(, IOTHUB_MODULE_CLIENT_LL_HANDLE, IoTHubModuleClient_LL_CreateFromConnectionString, const char*, connectionString, IOTHUB_CLIENT_TRANSPORT_PROVIDER, protocol);
-
-    /**
-    * @brief	This API creates a module handle based on environment variables set in the Edge runtime.
-    NOTE: It is *ONLY* valid when the code is running in a container initiated by Edge.
-    *
-    * @param	protocol            Function pointer for protocol implementation
-    *
-    * @return	A non-NULL @c IOTHUB_CLIENT_LL_HANDLE value that is used when
-    *           invoking other functions for IoT Hub client and @c NULL on failure.
-
-    */
-    MOCKABLE_FUNCTION(, IOTHUB_MODULE_CLIENT_LL_HANDLE, IoTHubModuleClient_LL_CreateFromEnvironment, IOTHUB_CLIENT_TRANSPORT_PROVIDER, protocol);
 
     /**
     * @brief    Disposes of resources allocated by the IoT Hub client. This is a
@@ -300,13 +287,13 @@ extern "C"
      * @brief    This API sets callback for async cloud to module method call.
      *
      * @param    iotHubModuleClientHandle              The handle created by a call to the create function.
-     * @param    inboundModuleMethodCallback     The callback which will be called by IoTHub.
+     * @param    moduleMethodCallback            The callback which will be called by IoTHub.
      * @param    userContextCallback             User specified context that will be provided to the
      *                                           callback. This can be @c NULL.
      *
      * @return    IOTHUB_CLIENT_OK upon success or an error code upon failure.
      */
-     MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubModuleClient_LL_SetModuleMethodCallback, IOTHUB_MODULE_CLIENT_LL_HANDLE, iotHubModuleClientHandle, IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK, inboundModuleMethodCallback, void*, userContextCallback);
+     MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubModuleClient_LL_SetModuleMethodCallback, IOTHUB_MODULE_CLIENT_LL_HANDLE, iotHubModuleClientHandle, IOTHUB_CLIENT_MODULE_METHOD_CALLBACK_ASYNC, moduleMethodCallback, void*, userContextCallback);
 
      /**
      * @brief    This API responses to a asnyc method callback identified the methodId.
@@ -359,10 +346,49 @@ extern "C"
 
 #ifdef USE_EDGE_MODULES
 
-    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubModuleClient_LL_DeviceMethodInvoke, IOTHUB_MODULE_CLIENT_LL_HANDLE, iotHubModuleClientHandle, const char*, deviceId, const char*, methodName, const char*, methodPayload, unsigned int, timeout, int*, responseStatus, unsigned char**, responsePayload, size_t*, responsePayloadSize);
+    /**
+    * @brief    This API creates a module handle based on environment variables set in the Edge runtime.
+    *           NOTE: It is *ONLY* valid when the code is running in a container initiated by Edge.
+    *
+    * @param    protocol            Function pointer for protocol implementation
+    *
+    * @return   A non-NULL @c IOTHUB_CLIENT_LL_HANDLE value that is used when
+    *           invoking other functions for IoT Hub client and @c NULL on failure.
+    */
+    MOCKABLE_FUNCTION(, IOTHUB_MODULE_CLIENT_LL_HANDLE, IoTHubModuleClient_LL_CreateFromEnvironment, IOTHUB_CLIENT_TRANSPORT_PROVIDER, protocol);
 
-    /* docs to come */
-    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubModuleClient_LL_ModuleMethodInvoke, IOTHUB_MODULE_CLIENT_LL_HANDLE, iotHubModuleClientHandle, const char*, deviceId, const char*, moduleId, const char*, methodName, const char*, methodPayload, unsigned int, timeout, int*, responseStatus, unsigned char**, responsePayload, size_t*, responsePayloadSize);
+    /*
+    * @brief    This API invokes a device method on a specified device
+    *
+    * @param    iotHubModuleClientHandle        The handle created by a call to a create function
+    * @param    deviceId                        The device id of the device to invoke a method on
+    * @param    methodName                      The name of the method
+    * @param    methodPayload                   The method payload (in json format)
+    * @param    timeout                         The time in seconds before a timeout occurs
+    * @param    responseStatus                  This pointer will be filled with the response status after invoking the device method
+    * @param    responsePayload                 This pointer will be filled with the response payload
+    * @param    responsePayloadSize             This pointer will be filled with the response payload size
+    *
+    * @return   IOTHUB_CLIENT_OK upon success, or an error code upon failure.
+    */
+    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubModuleClient_LL_DeviceMethodInvokeAsync, IOTHUB_MODULE_CLIENT_LL_HANDLE, iotHubModuleClientHandle, const char*, deviceId, const char*, methodName, const char*, methodPayload, unsigned int, timeout, int*, responseStatus, unsigned char**, responsePayload, size_t*, responsePayloadSize);
+
+    /*
+    * @brief    This API invokes a module method on a specified module
+    *
+    * @param    iotHubModuleClientHandle        The handle created by a call to a create function
+    * @param    deviceId                        The device id of the device to invoke a method on
+    * @param    moduleId                        The module id of the module to invoke a method on
+    * @param    methodName                      The name of the method
+    * @param    methodPayload                   The method payload (in json format)
+    * @param    timeout                         The time in seconds before a timeout occurs
+    * @param    responseStatus                  This pointer will be filled with the response status after invoking the module method
+    * @param    responsePayload                 This pointer will be filled with the response payload
+    * @param    responsePayloadSize             This pointer will be filled with the response payload size
+    *
+    * @return   IOTHUB_CLIENT_OK upon success, or an error code upon failure.
+    */
+    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubModuleClient_LL_ModuleMethodInvokeAsync, IOTHUB_MODULE_CLIENT_LL_HANDLE, iotHubModuleClientHandle, const char*, deviceId, const char*, moduleId, const char*, methodName, const char*, methodPayload, unsigned int, timeout, int*, responseStatus, unsigned char**, responsePayload, size_t*, responsePayloadSize);
 
 #endif /*USE_EDGE_MODULES*/
 

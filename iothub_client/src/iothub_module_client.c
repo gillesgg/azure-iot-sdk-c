@@ -13,11 +13,6 @@ IOTHUB_MODULE_CLIENT_HANDLE IoTHubModuleClient_CreateFromConnectionString(const 
     return (IOTHUB_MODULE_CLIENT_HANDLE)IoTHubClientCore_CreateFromConnectionString(connectionString, protocol);
 }
 
-IOTHUB_MODULE_CLIENT_HANDLE IoTHubModuleClient_CreateFromEnvironment(IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol)
-{
-    return IoTHubClientCore_CreateFromEnvironment(protocol);
-}
-
 void IoTHubModuleClient_Destroy(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle)
 {
     IoTHubClientCore_Destroy((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle);
@@ -72,9 +67,9 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_SendReportedState(IOTHUB_MODULE_CLIENT_H
     return IoTHubClientCore_SendReportedState((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, reportedState, size, reportedStateCallback, userContextCallback);
 }
 
-IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_HANDLE iotHubClientHandle, IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC methodCallback, void* userContextCallback)
+IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_HANDLE iotHubClientHandle, IOTHUB_CLIENT_MODULE_METHOD_CALLBACK_ASYNC methodCallback, void* userContextCallback)
 {
-    return IoTHubClientCore_SetDeviceMethodCallback((IOTHUB_CLIENT_CORE_HANDLE)iotHubClientHandle, methodCallback, userContextCallback);
+    return IoTHubClientCore_SetDeviceMethodCallback((IOTHUB_CLIENT_CORE_HANDLE)iotHubClientHandle, (IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC)methodCallback, userContextCallback);
 }
 
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_ModuleMethodResponse(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, METHOD_HANDLE methodId, const unsigned char* response, size_t respSize, int statusCode)
@@ -94,14 +89,19 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_SetInputMessageCallback(IOTHUB_MODULE_CL
 
 #ifdef USE_EDGE_MODULES
 
+IOTHUB_MODULE_CLIENT_HANDLE IoTHubModuleClient_CreateFromEnvironment(IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol)
+{
+    return IoTHubClientCore_CreateFromEnvironment(protocol);
+}
+
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_DeviceMethodInvoke(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
-    return IoTHubClientCore_GateToGenericMethodInvoke((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, deviceId, NULL, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+    return IoTHubClientCore_GenericMethodInvoke((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, deviceId, NULL, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
 }
 
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_ModuleMethodInvoke(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
-    return IoTHubClientCore_GateToGenericMethodInvoke((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+    return IoTHubClientCore_GenericMethodInvoke((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
 
 }
 

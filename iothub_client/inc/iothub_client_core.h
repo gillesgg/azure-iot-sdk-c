@@ -60,11 +60,10 @@ extern "C"
 
 #ifdef USE_EDGE_MODULES
     MOCKABLE_FUNCTION(, IOTHUB_CLIENT_CORE_HANDLE, IoTHubClientCore_CreateFromEnvironment, IOTHUB_CLIENT_TRANSPORT_PROVIDER, protocol);
+    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClientCore_GenericMethodInvoke, IOTHUB_CLIENT_CORE_HANDLE, iotHubClientHandle, const char*, deviceId, const char*, moduleId, const char*, methodName, const char*, methodPayload, unsigned int, timeout, int*, responseStatus, unsigned char**, responsePayload, size_t*, responsePayloadSize);
+
+
 #endif /* USE_EDGE_MODULES */
-
-    /* Utility functions that should be replaced after iothub_client refactor */
-    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClientCore_GateToGenericMethodInvoke, IOTHUB_CLIENT_CORE_HANDLE, iotHubClientHandle, const char*, deviceId, const char*, moduleId, const char*, methodName, const char*, methodPayload, unsigned int, timeout, int*, responseStatus, unsigned char**, responsePayload, size_t*, responsePayloadSize);
-
 
 #ifdef __cplusplus
 }
