@@ -16,6 +16,7 @@
 #include "azure_c_shared_utility/shared_util_options.h"
 #include "azure_c_shared_utility/envvariable.h"
 #include "azure_prov_client/iothub_security_factory.h"
+#include "azure_c_shared_utility/agenttime.h"
 
 #include "iothub_client_core_ll.h"
 #include "internal/iothub_client_authorization.h"

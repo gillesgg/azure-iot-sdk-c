@@ -3,29 +3,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
-#ifdef ARDUINO
-#include "AzureIoT.h"
-#else
 #include "iothub_module_client_ll.h"
+#include "iothub_client_ll_edge.h"
 #include "iothub_client_options.h"
 #include "iothub_message.h"
 #include "azure_c_shared_utility/threadapi.h"
 #include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/shared_util_options.h"
-
-#ifdef USE_MQTT
 #include "iothubtransportmqtt.h"
-#else
-#error "This sample currently only works when using MQTT protocol"
-#endif
-#endif
-
-/*String containing Hostname, Device Id & Device Key, ModuleID, and GatewayHostName in the format:                          */
-/*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>;ModuleId=<Module_Id>;GatewayHostName=127.0.0.1" */
-static const char* connectionString = "[device connection string]";
+#include "iothub.h"
 
 typedef struct FILTERED_MESSAGE_INSTANCE_TAG
 {
@@ -43,6 +31,8 @@ static void PrintMessageInformation(IOTHUB_MESSAGE_HANDLE message)
     const char* correlationId;
     const char* messageBody;
     const char* inputQueueName;
+    const char* connectionModuleId;
+    const char* connectionDeviceId;
 
     // Message properties
     if ((messageId = IoTHubMessage_GetMessageId(message)) == NULL)
@@ -64,10 +54,21 @@ static void PrintMessageInformation(IOTHUB_MESSAGE_HANDLE message)
     if ((inputQueueName = IoTHubMessage_GetInputName(message)) == NULL)
     {
         inputQueueName = "<null>";
-    }    
+    }
 
-    printf("Received Message [%zu]\r\n Message ID: [%s]\r\n Correlation ID: [%s]\r\n Data: [%s]\r\n InputQueueName: [%s]\n", 
-            messagesReceivedByInput1Queue, messageId, correlationId, messageBody, inputQueueName);
+    if ((connectionModuleId = IoTHubMessage_GetConnectionModuleId(message)) == NULL)
+    {
+        connectionModuleId = "<null>";
+    }
+
+    if ((connectionDeviceId = IoTHubMessage_GetConnectionDeviceId(message)) == NULL)
+    {
+        connectionDeviceId = "<null>";
+    }
+
+
+    printf("Received Message [%zu]\r\n Message ID: [%s]\r\n Correlation ID: [%s]\r\n Data: [%s]\r\n InputQueueName: [%s]\n connectionModuleId: [%s]\r\n connectionDeviceId: [%s]\n",
+            messagesReceivedByInput1Queue, messageId, correlationId, messageBody, inputQueueName, connectionModuleId, connectionDeviceId);
 }
 
 // DefaultMessageCallback is invoked if a message arrives that does not map up to one of the queues
@@ -76,9 +77,8 @@ static void PrintMessageInformation(IOTHUB_MESSAGE_HANDLE message)
 static IOTHUBMESSAGE_DISPOSITION_RESULT DefaultMessageCallback(IOTHUB_MESSAGE_HANDLE message, void* userContextCallback)
 {
     (void)userContextCallback;
-    printf("** UNEXPECTED **.  Message arrived that was not sent to registered 'input1' queue\n");
+    printf("Message arrived sent to the default queue\n");
     PrintMessageInformation(message);
-    IoTHubMessage_Destroy(message);
     return IOTHUBMESSAGE_ACCEPTED;
 }
 
@@ -143,6 +143,9 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT InputQueue1FilterCallback(IOTHUB_MESSAGE
             // We filter out every other message.  Here we will send on.
             printf("Sending message (%zu) to the next stage in pipeline\n", messagesReceivedByInput1Queue);
 
+            IOTHUB_MESSAGE_RESULT msgResult = IoTHubMessage_SetMessageId(message, "MSG_ID");
+            if (msgResult != IOTHUB_MESSAGE_OK) { printf("SetMesageId failed, id=%d\n", msgResult); };
+
             clientResult = IoTHubModuleClient_LL_SendEventToOutputAsync(iotHubModuleClientHandle, message, "output1", SendConfirmationCallbackFromFilter, (void*)filteredMessageInstance);
             if (clientResult != IOTHUB_CLIENT_OK)
             {
@@ -171,19 +174,20 @@ static IOTHUB_MODULE_CLIENT_LL_HANDLE InitializeConnectionForFilter()
 {
     IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle;
 
-    if (platform_init() != 0)
+    if (IoTHub_Init() != 0)
     {
         printf("Failed to initialize the platform.\r\n");
         iotHubModuleClientHandle = NULL;
     }
-    else if ((iotHubModuleClientHandle = IoTHubModuleClient_LL_CreateFromConnectionString(connectionString, MQTT_Protocol)) == NULL)
+    else if ((iotHubModuleClientHandle = IoTHubModuleClient_LL_CreateFromEnvironment(MQTT_Protocol)) == NULL)
     {
-        printf("ERROR: IoTHubModuleClient_LL_CreateFromConnectionString(%s) failed\r\n", connectionString);
+        printf("ERROR: IoTHubModuleClient_LL_CreateFromEnvironment failed\r\n");
     }
     else
     {
-        bool trace = true;
-        IoTHubModuleClient_LL_SetOption(iotHubModuleClientHandle, OPTION_LOG_TRACE, &trace);
+        // Uncomment the following lines to enable verbose logging (e.g., for debugging).
+        // bool traceOn = true;
+        // IoTHubModuleClient_LL_SetOption(iotHubModuleClientHandle, OPTION_LOG_TRACE, &trace);
     }
 
     return iotHubModuleClientHandle;
@@ -195,7 +199,7 @@ static void DeInitializeConnectionForFilter(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHu
     {
         IoTHubModuleClient_LL_Destroy(iotHubModuleClientHandle);
     }
-    platform_deinit();
+    IoTHub_Deinit();
 }
 
 static int SetupCallbacksForInputQueues(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle)
@@ -220,7 +224,7 @@ static int SetupCallbacksForInputQueues(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubMod
     return ret;
 }
 
-void iothub_client_sample_module_filter()
+int main(void)
 {
     IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle;
 
@@ -237,19 +241,15 @@ void iothub_client_sample_module_filter()
     else
     {
         // The receiver just loops constantly waiting for messages.
-        printf("Waiting for incoming messages.  Control-C to stop listener\n");
+        printf("Waiting for incoming messages.\n");
         while (true)
         {
             IoTHubModuleClient_LL_DoWork(iotHubModuleClientHandle);
-            ThreadAPI_Sleep(1);
+            ThreadAPI_Sleep(100);
         }
     }
 
     DeInitializeConnectionForFilter(iotHubModuleClientHandle);
-}
-
-int main(void)
-{
-    iothub_client_sample_module_filter();
     return 0;
 }
+
