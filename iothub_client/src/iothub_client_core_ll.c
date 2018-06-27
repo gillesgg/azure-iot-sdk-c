@@ -14,7 +14,6 @@
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/singlylinkedlist.h" 
 #include "azure_c_shared_utility/shared_util_options.h"
-#include "azure_c_shared_utility/envvariable.h"
 #include "azure_c_shared_utility/agenttime.h"
 
 #include "iothub_client_core_ll.h"
@@ -32,6 +31,7 @@
 #endif
 
 #ifdef USE_EDGE_MODULES
+#include "azure_c_shared_utility/envvariable.h"
 #include "azure_prov_client/iothub_security_factory.h"
 #include "internal/iothub_client_edge.h"
 #endif
