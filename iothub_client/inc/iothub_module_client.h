@@ -64,7 +64,7 @@ extern "C"
     /**
     * @brief    Asynchronous call to send the message specified by @p eventMessageHandle.
     *
-    * @param    iotHubModuleClientHandle            The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle      The handle created by a call to the create function.
     * @param    eventMessageHandle            The handle to an IoT Hub message.
     * @param    eventConfirmationCallback     The callback specified by the module for receiving
     *                                         confirmation of the delivery of the IoT Hub message.
@@ -86,7 +86,7 @@ extern "C"
     /**
     * @brief    This function returns the current sending status for IoTHubClient.
     *
-    * @param    iotHubModuleClientHandle        The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle  The handle created by a call to the create function.
     * @param    iotHubClientStatus        The sending state is populated at the address pointed
     *                                     at by this parameter. The value will be set to
     *                                     @c IOTHUBCLIENT_SENDSTATUS_IDLE if there is currently
@@ -101,7 +101,7 @@ extern "C"
     * @brief    Sets up the message callback to be invoked when IoT Hub issues a
     *             message to the device. This is a blocking call.
     *
-    * @param    iotHubModuleClientHandle            The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle      The handle created by a call to the create function.
     * @param    messageCallback               The callback specified by the device for receiving
     *                                         messages from IoT Hub.
     * @param    userContextCallback           User specified context that will be provided to the
@@ -118,7 +118,7 @@ extern "C"
     * @brief    Sets up the connection status callback to be invoked representing the status of
     * the connection to IOT Hub. This is a blocking call.
     *
-    * @param    iotHubModuleClientHandle              The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle        The handle created by a call to the create function.
     * @param    connectionStatusCallback        The callback specified by the module for receiving
     *                                           updates about the status of the connection to IoT Hub.
     * @param    userContextCallback             User specified context that will be provided to the
@@ -135,7 +135,7 @@ extern "C"
     * @brief    Sets up the connection status callback to be invoked representing the status of
     * the connection to IOT Hub. This is a blocking call.
     *
-    * @param    iotHubModuleClientHandle               The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle         The handle created by a call to the create function.
     * @param    retryPolicy                      The policy to use to reconnect to IoT Hub when a
     *                                            connection drops.
     * @param    retryTimeoutLimitInSeconds       Maximum amount of time(seconds) to attempt reconnection when a
@@ -152,7 +152,7 @@ extern "C"
     * @brief    Sets up the connection status callback to be invoked representing the status of
     * the connection to IOT Hub. This is a blocking call.
     *
-    * @param    iotHubModuleClientHandle               The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle         The handle created by a call to the create function.
     * @param    retryPolicy                      Out parameter containing the policy to use to reconnect to IoT Hub.
     * @param    retryTimeoutLimitInSeconds       Out parameter containing maximum amount of time in seconds to attempt reconnection
     to IOT Hub.
@@ -169,7 +169,7 @@ extern "C"
     *             what was the value of the @c time function when the last message was
     *             received at the client.
     *
-    * @param    iotHubModuleClientHandle              The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle        The handle created by a call to the create function.
     * @param    lastMessageReceiveTime          Out parameter containing the value of @c time function
     *                                           when the last message was received.
     *
@@ -183,8 +183,8 @@ extern "C"
     *             @p value is pointing to are specific for every option.
     *
     * @param    iotHubModuleClientHandle    The handle created by a call to the create function.
-    * @param    optionName            Name of the option.
-    * @param    value                 The value.
+    * @param    optionName                  Name of the option.
+    * @param    value                       The value.
     *
     *            The options that can be set via this API are:
     *                - @b timeout - the maximum time in milliseconds a communication is
@@ -232,7 +232,7 @@ extern "C"
     /**
     * @brief    This API specifies a call back to be used when the module receives a state update.
     *
-    * @param    iotHubModuleClientHandle       The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle The handle created by a call to the create function.
     * @param    moduleTwinCallback       The callback specified by the module client to be used for updating
     *                                    the desired state. The callback will be called in response to a 
     *                                    request send by the IoTHub services. The payload will be passed to the
@@ -252,7 +252,7 @@ extern "C"
     /**
     * @brief    This API sends a report of the module's properties and their current values.
     *
-    * @param    iotHubModuleClientHandle       The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle The handle created by a call to the create function.
     * @param    reportedState            The current module property values to be 'reported' to the IoTHub.
     * @param    reportedStateCallback    The callback specified by the module client to be called with the
     *                                    result of the transaction.
@@ -281,11 +281,11 @@ extern "C"
     /**
     * @brief    This API responses to a asnyc method callback identified the methodId.
     *
-    * @param    iotHubModuleClientHandle      The handle created by a call to the create function.
-    * @param    methodId                The methodId of the Module Method callback.
-    * @param    response                The response data for the method callback.
-    * @param    response_size           The size of the response data buffer.
-    * @param    status_response         The status response of the method callback.
+    * @param    iotHubModuleClientHandle    The handle created by a call to the create function.
+    * @param    methodId                    The methodId of the Module Method callback.
+    * @param    response                    The response data for the method callback.
+    * @param    response_size               The size of the response data buffer.
+    * @param    status_response             The status response of the method callback.
     *
     * @return    IOTHUB_CLIENT_OK upon success or an error code upon failure.
     */
@@ -294,7 +294,7 @@ extern "C"
     /**
     * @brief    Asynchronous call to send the message specified by @p eventMessageHandle.
     *
-    * @param    iotHubModuleClientHandle            The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle      The handle created by a call to the create function.
     * @param    eventMessageHandle            The handle to an IoT Hub message.
     * @param    outputName                    The name of the queue to send the message to.
     * @param    eventConfirmationCallback     The callback specified by the module for receiving
@@ -318,7 +318,7 @@ extern "C"
     /**
     * @brief    This API sets callback for  method call that is directed to specified 'inputName' queue (e.g. messages from IoTHubClient_SendEventToOutputAsync)
     *
-    * @param    iotHubModuleClientHandle            The handle created by a call to the create function.
+    * @param    iotHubModuleClientHandle      The handle created by a call to the create function.
     * @param    inputName                     The name of the queue to listen on for this moduleMethodCallback/userContextCallback.
     * @param    eventHandlerCallback          The callback which will be called by IoTHub.
     * @param    userContextCallback           User specified context that will be provided to the
