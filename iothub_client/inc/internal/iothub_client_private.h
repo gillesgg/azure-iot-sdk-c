@@ -14,11 +14,14 @@
 #include "azure_c_shared_utility/tickcounter.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
 
-#include "internal/iothub_client_edge.h"
 #include "iothub_message.h"
 #include "iothub_client_core_ll.h"
 #include "internal/iothub_transport_ll_private.h"
 #include "internal/iothubtransport.h"
+
+#ifdef USE_EDGE_MODULES
+#include "internal/iothub_client_edge.h"
+#endif
 
 #ifdef __cplusplus
 extern "C"
