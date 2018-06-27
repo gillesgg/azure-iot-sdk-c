@@ -34,7 +34,9 @@
 typedef struct IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA_TAG
 {
     IOTHUB_CLIENT_CORE_LL_HANDLE coreHandle;
+#ifdef USE_EDGE_MODULES
     IOTHUB_CLIENT_EDGE_HANDLE methodHandle;
+#endif
 } IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA;
 
 
@@ -56,7 +58,7 @@ IOTHUB_MODULE_CLIENT_LL_HANDLE IoTHubModuleClient_LL_CreateFromConnectionString(
             IoTHubModuleClient_LL_Destroy(result);
             result = NULL;
         }
-        result->methodHandle = NULL; //only valid if created from environment
+        //Edge handle is not added
     }
 
     return result;
