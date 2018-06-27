@@ -3,9 +3,11 @@
 
 #include "testrunnerswitcher.h"
 
+#include <stddef.h>
+
 int main(void)
 {
     size_t failedTestCount = 0;
-    RUN_TEST_SUITE(iothubclient_mqtt_modules_device_method_e2e, failedTestCount);
+    RUN_TEST_SUITE(prov_sc_dev_caps_ut, failedTestCount);
     return failedTestCount;
 }
