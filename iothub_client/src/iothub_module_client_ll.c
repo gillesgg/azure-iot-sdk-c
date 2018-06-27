@@ -230,12 +230,12 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_SendReportedState(IOTHUB_MODULE_CLIEN
     return result;
 }
 
-IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, IOTHUB_CLIENT_MODULE_METHOD_CALLBACK_ASYNC moduleMethodCallback, void* userContextCallback)
+IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_SetModuleMethodCallback(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC moduleMethodCallback, void* userContextCallback)
 {
     IOTHUB_CLIENT_RESULT result;
     if (iotHubModuleClientHandle != NULL)
     {
-        result = IoTHubClientCore_LL_SetDeviceMethodCallback(iotHubModuleClientHandle->coreHandle, (IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC)moduleMethodCallback, userContextCallback);
+        result = IoTHubClientCore_LL_SetDeviceMethodCallback(iotHubModuleClientHandle->coreHandle, moduleMethodCallback, userContextCallback);
     }
     else
     {
