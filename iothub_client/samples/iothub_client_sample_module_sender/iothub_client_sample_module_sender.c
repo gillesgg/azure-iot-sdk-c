@@ -4,8 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "iothub_module_client.h"
-#include "iothub_client_ll_edge.h"
+#include "iothub_module_client_ll.h"
 #include "iothub_message.h"
 #include "azure_c_shared_utility/threadapi.h"
 #include "azure_c_shared_utility/crt_abstractions.h"
@@ -14,6 +13,7 @@
 #include "iothub_client_options.h"
 #include "iothubtransportmqtt.h"
 #include "iothub.h"
+#include "time.h"
 
 
 static int callbackCounter;
@@ -101,7 +101,7 @@ int main(void)
 
             }
             IoTHubModuleClient_LL_DoWork(iotHubModuleClientHandle);
-            ThreadAPI_Sleep(100);
+            ThreadAPI_Sleep(1000);
 
             iterator++;
         } while (1);
