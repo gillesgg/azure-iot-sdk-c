@@ -319,7 +319,7 @@ IOTHUB_MODULE_CLIENT_LL_HANDLE IoTHubModuleClient_LL_CreateFromEnvironment(IOTHU
     return result;
 }
 
-IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_DeviceMethodInvokeAsync(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_DeviceMethodInvoke(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
     IOTHUB_CLIENT_RESULT result;
 
@@ -335,7 +335,7 @@ IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_DeviceMethodInvokeAsync(IOTHUB_MODULE
     return result;
 }
 
-IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_ModuleMethodInvokeAsync(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
+IOTHUB_CLIENT_RESULT IoTHubModuleClient_LL_ModuleMethodInvoke(IOTHUB_MODULE_CLIENT_LL_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
     IOTHUB_CLIENT_RESULT result;
 

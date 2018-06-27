@@ -1,8 +1,6 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#this is CMakeLists.txt for iothub_client_sample_module_method_invoke
-
 compileAsC99()
 
 set(iothub_client_sample_module_method_invoke_c_files

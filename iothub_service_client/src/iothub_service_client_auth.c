@@ -15,7 +15,6 @@ static const char* IOTHUBHOSTNAME = "HostName";
 static const char* IOTHUBSHAREDACESSKEYNAME = "SharedAccessKeyName";
 static const char* IOTHUBSHAREDACESSKEY = "SharedAccessKey";
 static const char* IOTHUBDEVICEID = "DeviceId";
-static const char* IOTHUBMODULEID = "ModuleId";
 
 static void free_service_client_auth(IOTHUB_SERVICE_CLIENT_AUTH* authInfo)
 {
@@ -25,39 +24,11 @@ static void free_service_client_auth(IOTHUB_SERVICE_CLIENT_AUTH* authInfo)
     free(authInfo->sharedAccessKey);
     free(authInfo->keyName);
     free(authInfo->deviceId);
-    free(authInfo->moduleId);
     free(authInfo);
 }
 
 DEFINE_ENUM_STRINGS(IOTHUB_DEVICE_STATUS, IOTHUB_DEVICE_STATUS_VALUES);
 DEFINE_ENUM_STRINGS(IOTHUB_DEVICE_CONNECTION_STATE, IOTHUB_DEVICE_CONNECTION_STATE_VALUES);
-
-static int validate_and_choose_authType(const char* keyName, const char* deviceId, const char* moduleId, IOTHUB_SERVICE_CLIENT_AUTH_TYPE* authType)
-{
-    int result;
-
-    if ((keyName != NULL) && (deviceId == NULL) && (moduleId == NULL))
-    {
-        *authType = IOTHUB_SERVICE_CLIENT_AUTH_TYPE_HUB;
-        result = 0;
-    }
-    else if ((keyName == NULL) && (deviceId != NULL) && (moduleId == NULL))
-    {
-        *authType = IOTHUB_SERVICE_CLIENT_AUTH_TYPE_DEVICE;
-        result = 0;
-    }
-    else if ((keyName == NULL) && (deviceId != NULL) && (moduleId != NULL))
-    {
-        *authType = IOTHUB_SERVICE_CLIENT_AUTH_TYPE_MODULE;
-        result = 0;
-    }
-    else
-    {
-        result = 1;
-    }
-
-    return result;
-}
 
 IOTHUB_SERVICE_CLIENT_AUTH_HANDLE IoTHubServiceClientAuth_CreateFromConnectionString(const char* connectionString)
 {
@@ -111,21 +82,25 @@ IOTHUB_SERVICE_CLIENT_AUTH_HANDLE IoTHubServiceClientAuth_CreateFromConnectionSt
                     const char* hostName;
                     const char* keyName;
                     const char* deviceId;
-                    const char* moduleId;
                     const char* sharedAccessKey;
                     const char* iothubName;
                     const char* iothubSuffix;
 
                     keyName = Map_GetValueFromKey(connection_string_values_map, IOTHUBSHAREDACESSKEYNAME);
                     deviceId = Map_GetValueFromKey(connection_string_values_map, IOTHUBDEVICEID);
-                    moduleId = Map_GetValueFromKey(connection_string_values_map, IOTHUBMODULEID);
 
                     /*Codes_SRS_IOTHUBSERVICECLIENT_12_004: [** IoTHubServiceClientAuth_CreateFromConnectionString shall populate hostName, iotHubName, iotHubSuffix, sharedAccessKeyName, sharedAccessKeyValue from the given connection string by calling connectionstringparser_parse **] */
                     (void)memset(result, 0, sizeof(IOTHUB_SERVICE_CLIENT_AUTH));
-
-                    if (validate_and_choose_authType(keyName, deviceId, moduleId, &result->authType) != 0)
+                    if ((keyName == NULL) && (deviceId == NULL))
                     {
-                        LogError("Inavlid combination of value(s) for %s, %s or %s", IOTHUBSHAREDACESSKEYNAME, IOTHUBDEVICEID, IOTHUBMODULEID);
+                        /*Codes_SRS_IOTHUBSERVICECLIENT_12_012: [** If the populating SharedAccessKeyName fails, IoTHubServiceClientAuth_CreateFromConnectionString shall do clean up and return NULL. **] */
+                        LogError("Couldn't find %s or %s in connection string", IOTHUBSHAREDACESSKEYNAME, IOTHUBDEVICEID);
+                        free_service_client_auth(result);
+                        result = NULL;
+                    }
+                    else if ((keyName != NULL) && (deviceId != NULL))
+                    {
+                        LogError("Both %s and %s in connection string were set, they are mutually exclusive", IOTHUBSHAREDACESSKEYNAME, IOTHUBDEVICEID);
                         free_service_client_auth(result);
                         result = NULL;
                     }
@@ -207,15 +182,11 @@ IOTHUB_SERVICE_CLIENT_AUTH_HANDLE IoTHubServiceClientAuth_CreateFromConnectionSt
                         free_service_client_auth(result);
                         result = NULL;
                     }
+                    /*Codes_SRS_IOTHUBSERVICECLIENT_12_026: [** IoTHubServiceClientAuth_CreateFromConnectionString shall allocate memory and copy keyName to result->keyName by calling mallocAndStrcpy_s. **] */
                     else if ((deviceId != NULL) && (mallocAndStrcpy_s(&result->deviceId, deviceId) != 0))
                     {
-                        LogError("mallocAndStrcpy_s failed for deviceId");
-                        free_service_client_auth(result);
-                        result = NULL;
-                    }
-                    else if ((moduleId != NULL) && (mallocAndStrcpy_s(&result->moduleId, moduleId) != 0))
-                    {
-                        LogError("mallocAndStrcpy_s failed for moduleId");
+                        /*Codes_SRS_IOTHUBSERVICECLIENT_12_027: [** If the mallocAndStrcpy_s fails, IoTHubServiceClientAuth_CreateFromConnectionString shall do clean up and return NULL. **] */
+                        LogError("mallocAndStrcpy_s failed for keyName");
                         free_service_client_auth(result);
                         result = NULL;
                     }

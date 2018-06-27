@@ -32,7 +32,9 @@
 #include "internal/iothub_client_ll_uploadtoblob.h"
 #endif
 
+#ifdef USE_EDGE_MODULES
 #include "internal/iothub_client_edge.h"
+#endif
 
 #define LOG_ERROR_RESULT LogError("result = %s", ENUM_TO_STRING(IOTHUB_CLIENT_RESULT, result));
 #define INDEFINITE_TIME ((time_t)(-1))
@@ -276,7 +278,6 @@ static void device_twin_data_destroy(IOTHUB_DEVICE_TWIN* client_item)
 static int create_module_method_module(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle_data, const IOTHUB_CLIENT_CONFIG* config, const char* module_id)
 {
     int result;
-    (void)handle_data;
     (void)config;
     (void)module_id;
 #ifdef USE_EDGE_MODULES
@@ -291,6 +292,7 @@ static int create_module_method_module(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle
         result = 0;
     }
 #else
+    (void)handle_data;
     result = 0
 #endif
     return result;

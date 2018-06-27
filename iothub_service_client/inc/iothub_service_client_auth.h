@@ -34,13 +34,6 @@ DEFINE_ENUM(IOTHUB_DEVICE_STATUS, IOTHUB_DEVICE_STATUS_VALUES);
 
 DEFINE_ENUM(IOTHUB_DEVICE_CONNECTION_STATE, IOTHUB_DEVICE_CONNECTION_STATE_VALUES);
 
-#define IOTHUB_SERVICE_CLIENT_AUTH_TYPE_VALUES      \
-    IOTHUB_SERVICE_CLIENT_AUTH_TYPE_HUB,            \
-    IOTHUB_SERVICE_CLIENT_AUTH_TYPE_DEVICE,         \
-    IOTHUB_SERVICE_CLIENT_AUTH_TYPE_MODULE          \
-
-DEFINE_ENUM(IOTHUB_SERVICE_CLIENT_AUTH_TYPE, IOTHUB_SERVICE_CLIENT_AUTH_TYPE_VALUES);
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -53,15 +46,12 @@ extern "C"
 */
 typedef struct IOTHUB_SERVICE_CLIENT_AUTH_TAG
 {
-    IOTHUB_SERVICE_CLIENT_AUTH_TYPE authType;
     char* hostname;
     char* iothubName;
     char* iothubSuffix;
     char* sharedAccessKey;
     char* keyName;
     char* deviceId;
-    char* moduleId;
-    char* gatewayHostName;
 } IOTHUB_SERVICE_CLIENT_AUTH;
 
 /** @brief Handle to hide struct and use it in consequent APIs

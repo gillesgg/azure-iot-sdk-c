@@ -31,7 +31,8 @@ int main(void)
         unsigned char* responsePayload;
         size_t responsePayloadSize;
 
-        IOTHUB_CLIENT_RESULT invokeResult = IoTHubModuleClient_LL_ModuleMethodInvokeAsync(handle, targetDevice, targetModule, targetMethodName, targetMethodPayload, timeout, &response, &responsePayload, &responsePayloadSize);
+        /* Unlike other LL functions, this call executes and blocks. It does NOT require a DoWork() */
+        IOTHUB_CLIENT_RESULT invokeResult = IoTHubModuleClient_LL_ModuleMethodInvoke(handle, targetDevice, targetModule, targetMethodName, targetMethodPayload, timeout, &response, &responsePayload, &responsePayloadSize);
         if (invokeResult == IOTHUB_CLIENT_OK)
         {
             (void)printf("\r\nModule Method called\r\n");
@@ -45,7 +46,7 @@ int main(void)
         }
         else
         {
-            (void)printf("IoTHubModuleClient_LL_ModuleMethodInvokeAsync failed with result: %d\n", invokeResult);
+            (void)printf("IoTHubModuleClient_LL_ModuleMethodInvoke failed with result: %d\n", invokeResult);
         }
         (void)printf("Destroying Module Client handle");
         IoTHubModuleClient_LL_Destroy(handle);

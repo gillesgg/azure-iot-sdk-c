@@ -31,7 +31,7 @@
 
 #define SASTOKEN_LIFETIME 3600
 
-static const char* const URL_API_VERSION = "?api-version=2017-11-08-preview";
+static const char* const URL_API_VERSION = "?api-version=2018-06-27";
 static const char* const RELATIVE_PATH_FMT_MODULE_METHOD = "/twins/%s/modules/%s/methods%s";
 static const char* const RELATIVE_PATH_FMT_DEVICE_METHOD = "/twins/%s/methods%s";
 static const char* const PAYLOAD_FMT = "{\"methodName\":\"%s\",\"timeout\":%d,\"payload\":%s}";

@@ -389,8 +389,7 @@ static const char* TEST_AUTH_TYPE_CERTIFICATE_AUTHORITY = "certificateAuthority"
 static const char* TEST_PRIMARYKEY = "thePrimaryKey";
 static const char* TEST_SECONDARYKEY = "theSecondaryKey";
 static const char* TEST_GENERATIONID = "theGenerationId";
-static const char* TEST_ETAG = "theEtag";
-
+static const char* TEST_ETAG = "theEtag";
 static const char* TEST_MANAGED_BY = "testManagedBy";
 
 
