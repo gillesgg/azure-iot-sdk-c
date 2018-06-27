@@ -112,7 +112,9 @@ typedef struct IOTHUB_CLIENT_CORE_LL_HANDLE_DATA_TAG
 #ifndef DONT_USE_UPLOADTOBLOB
     IOTHUB_CLIENT_LL_UPLOADTOBLOB_HANDLE uploadToBlobHandle;
 #endif
+#ifdef USE_EDGE_MODULES
     IOTHUB_CLIENT_EDGE_HANDLE methodHandle;
+#endif
     uint32_t data_msg_id;
     bool complete_twin_update_encountered;
     IOTHUB_AUTHORIZATION_HANDLE authorization_module;
@@ -228,7 +230,6 @@ static int retrieve_edge_environment_variabes(EDGE_ENVIRONMENT_VARIABLES *edge_e
 
     return result;
 }
-#endif /* USE_EDGE_MODULES */
 
 IOTHUB_CLIENT_EDGE_HANDLE IoTHubClientCore_LL_GetEdgeHandle(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle)
 {
@@ -244,6 +245,7 @@ IOTHUB_CLIENT_EDGE_HANDLE IoTHubClientCore_LL_GetEdgeHandle(IOTHUB_CLIENT_CORE_L
 
     return result;
 }
+#endif /* USE_EDGE_MODULES */
 
 static void setTransportProtocol(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handleData, TRANSPORT_PROVIDER* protocol)
 {
