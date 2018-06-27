@@ -43,7 +43,7 @@ if(NOT ${dont_use_uploadtoblob})
     add_unittest_directory(blob_ut)
 endif()
 #if (${use_edge_modules})
-#    add_unittest_directory(iothubclient_ll_edge_ut)
+#    add_unittest_directory(iothubclient_edge_ut)
 #endif()
 
 add_unittest_directory(iothubclient_ut)
@@ -56,7 +56,6 @@ add_unittest_directory(message_queue_ut)
 
 add_unittest_directory(iothubmoduleclient_ll_ut)
 add_unittest_directory(iothubmoduleclient_ut)
-add_unittest_directory(iothubclient_edge_ut)
 
 if(${use_http})
     add_unittest_directory(iothubtransporthttp_ut)

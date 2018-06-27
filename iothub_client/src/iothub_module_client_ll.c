@@ -13,7 +13,6 @@
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/envvariable.h"
 
-#include "internal/iothub_client_edge.h"
 #include "iothub_client_core_ll.h"
 #include "iothub_client_authorization.h"
 #include "iothub_module_client_ll.h"
@@ -22,11 +21,14 @@
 #include "iothub_client_options.h"
 #include "iothub_client_version.h"
 #include "iothub_client_diagnostic.h"
-#include "azure_prov_client/iothub_security_factory.h"
 #include <stdint.h>
 
 #ifndef DONT_USE_UPLOADTOBLOB
 #include "iothub_client_ll_uploadtoblob.h"
+#endif
+
+#ifdef USE_EDGE_MODULES
+#include "internal/iothub_client_edge.h"
 #endif
 
 typedef struct IOTHUB_MODULE_CLIENT_LL_HANDLE_DATA_TAG

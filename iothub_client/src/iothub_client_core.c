@@ -2324,7 +2324,7 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_SetInputMessageCallback(IOTHUB_CLIENT_CORE
 }
 
 /* Temporary function until replacement during iothub_client refactor*/
-
+#ifdef USE_EDGE_MODULES
 IOTHUB_CLIENT_RESULT IoTHubClientCore_GenericMethodInvoke(IOTHUB_CLIENT_CORE_HANDLE iotHubClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
     IOTHUB_CLIENT_RESULT result;
@@ -2346,3 +2346,4 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_GenericMethodInvoke(IOTHUB_CLIENT_CORE_HAN
 
     return result;
 }
+#endif /* USE_EDGE_MODULES */

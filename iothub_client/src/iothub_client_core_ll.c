@@ -15,7 +15,6 @@
 #include "azure_c_shared_utility/singlylinkedlist.h" 
 #include "azure_c_shared_utility/shared_util_options.h"
 #include "azure_c_shared_utility/envvariable.h"
-#include "azure_prov_client/iothub_security_factory.h"
 #include "azure_c_shared_utility/agenttime.h"
 
 #include "iothub_client_core_ll.h"
@@ -33,6 +32,7 @@
 #endif
 
 #ifdef USE_EDGE_MODULES
+#include "azure_prov_client/iothub_security_factory.h"
 #include "internal/iothub_client_edge.h"
 #endif
 
@@ -307,12 +307,9 @@ static int create_edge_handle(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle_data, co
         result = 0;
     }
 
-
-
-
 #else
     (void)handle_data;
-    result = 0
+    result = 0;
 #endif
     return result;
 }
@@ -2811,6 +2808,7 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_LL_SetInputMessageCallback(IOTHUB_CLIENT_C
     return IoTHubClientCore_LL_SetInputMessageCallbackImpl(iotHubClientHandle, inputName, eventHandlerCallback, NULL, userContextCallback, NULL, 0);
 }
 
+#ifdef USE_EDGE_MODULES
 /* These should be replaced during iothub_client refactor */
 IOTHUB_CLIENT_RESULT IoTHubClientCore_LL_GenericMethodInvoke(IOTHUB_CLIENT_CORE_LL_HANDLE iotHubClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
@@ -2833,7 +2831,7 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_LL_GenericMethodInvoke(IOTHUB_CLIENT_CORE_
     }
     return result;
 }
-
+#endif
 
 /*end*/
 

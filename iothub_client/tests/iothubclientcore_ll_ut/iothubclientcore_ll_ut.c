@@ -46,7 +46,6 @@ void* my_gballoc_realloc(void* ptr, size_t size)
 #include "azure_c_shared_utility/constbuffer.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/envvariable.h"
-#include "azure_prov_client/iothub_security_factory.h"
 
 #include "iothub_client_version.h"
 #include "iothub_message.h"
@@ -55,6 +54,7 @@ void* my_gballoc_realloc(void* ptr, size_t size)
 
 #ifdef USE_EDGE_MODULES
 #include "internal/iothub_client_edge.h"
+#include "azure_prov_client/iothub_security_factory.h"
 #endif
 
 #undef ENABLE_MOCKS
@@ -768,10 +768,9 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(IoTHubClient_EdgeHandle_Create, NULL);
     REGISTER_GLOBAL_MOCK_RETURN(IoTHubClient_Edge_ModuleMethodInvoke, IOTHUB_CLIENT_OK);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(IoTHubClient_Edge_ModuleMethodInvoke, IOTHUB_CLIENT_ERROR);
-#endif
-
     REGISTER_GLOBAL_MOCK_RETURN(iothub_security_init, 0);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(iothub_security_init, 1);
+#endif
 
     REGISTER_GLOBAL_MOCK_RETURN(environment_get_variable, ENVVARIABLE);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(environment_get_variable, NULL);
@@ -931,6 +930,8 @@ static void setup_IoTHubClientCore_LL_create_mocks(bool use_device_config, bool 
         {
             STRICT_EXPECTED_CALL(IoTHubClient_EdgeHandle_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
         }
+#else
+        (void)is_edge_module;
 #endif /*USE_EDGE_MODULES*/
 
         STRICT_EXPECTED_CALL(tickcounter_create());
