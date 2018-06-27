@@ -904,7 +904,7 @@ static int should_skip_index(size_t current_index, const size_t skip_array[], si
     return result;
 }
 
-static void setup_IoTHubClientCore_LL_create_mocks(bool use_device_config, bool is_module)
+static void setup_IoTHubClientCore_LL_create_mocks(bool use_device_config, bool is_edge_module)
 {
     STRICT_EXPECTED_CALL(platform_get_platform_info());
     STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG));
@@ -927,7 +927,7 @@ static void setup_IoTHubClientCore_LL_create_mocks(bool use_device_config, bool 
 #endif /*DONT_USE_UPLOADTOBLOB*/
 
 #ifdef USE_EDGE_MODULES
-        if (is_module)
+        if (is_edge_module)
         {
             STRICT_EXPECTED_CALL(IoTHubClient_EdgeHandle_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
         }
@@ -1444,7 +1444,7 @@ TEST_FUNCTION(IoTHubClientCore_LL_CreateFromConnectionString_with_ModuleId_succe
 
     STRICT_EXPECTED_CALL(STRING_c_str(IGNORED_PTR_ARG)).IgnoreArgument_handle().SetReturn(TEST_MODULE_ID_TOKEN);
 
-    setup_IoTHubClientCore_LL_create_mocks(false, true);
+    setup_IoTHubClientCore_LL_create_mocks(false, false);
 
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));
     EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG));

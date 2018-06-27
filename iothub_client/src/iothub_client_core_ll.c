@@ -275,22 +275,41 @@ static void device_twin_data_destroy(IOTHUB_DEVICE_TWIN* client_item)
     free(client_item);
 }
 
-static int create_module_method_module(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle_data, const IOTHUB_CLIENT_CONFIG* config, const char* module_id)
+static int create_edge_handle(IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* handle_data, const IOTHUB_CLIENT_CONFIG* config, const char* module_id)
 {
     int result;
     (void)config;
     (void)module_id;
 #ifdef USE_EDGE_MODULES
-    handle_data->methodHandle = IoTHubClient_EdgeHandle_Create(config, handle_data->authorization_module, module_id);
-    if (handle_data->methodHandle == NULL)
+    /* There is no way to currently distinguish a regular module from a edge module, so this handle is created regardless of if appropriate.
+    However, as a gateway hostname is required in order to create an Edge Handle, we need to at least make sure that exists
+    in order to prevent errors.
+    
+    The end result is that all edge modules will have an EdgeHandle, but only some non-edge modules will have it. 
+    Regardless, non-edge modules will never be able to use the handle.
+    */
+    if (config->protocolGatewayHostName != NULL)
     {
-        LogError("Unable to IoTHubModuleClient_LL_MethodHandle_Create");
-        result = __FAILURE__;
+        handle_data->methodHandle = IoTHubClient_EdgeHandle_Create(config, handle_data->authorization_module, module_id);
+
+        if (handle_data->methodHandle == NULL)
+        {
+            LogError("Unable to IoTHubModuleClient_LL_MethodHandle_Create");
+            result = __FAILURE__;
+        }
+        else
+        {
+            result = 0;
+        }
     }
     else
     {
         result = 0;
     }
+
+
+
+
 #else
     (void)handle_data;
     result = 0
@@ -552,7 +571,7 @@ static IOTHUB_CLIENT_CORE_LL_HANDLE_DATA* initialize_iothub_client(const IOTHUB_
                     free(result);
                     result = NULL;
                 }
-                else if ((module_id != NULL) && create_module_method_module(result, config, module_id) != 0)
+                else if ((module_id != NULL) && create_edge_handle(result, config, module_id) != 0)
                 {
                     LogError("unable to create module method handle");
                     if (!result->isSharedTransport)
