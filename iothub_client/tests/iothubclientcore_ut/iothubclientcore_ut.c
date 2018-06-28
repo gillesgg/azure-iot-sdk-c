@@ -4034,6 +4034,133 @@ TEST_FUNCTION(IoTHubClientCore_GenericMethodInvoke_succeeds)
 }
 
 
+TEST_FUNCTION(IoTHubClientCore_GenericMethodInvoke_NULL_handle_fails)
+{
+    //act
+    int responseStatus;
+    unsigned char* responsePayload;
+    size_t responsePayloadSize;
+
+    IOTHUB_CLIENT_RESULT result = IoTHubClientCore_GenericMethodInvoke(NULL, TEST_DEVICE_ID, TEST_MODULE_ID, 
+                                                                       TEST_METHOD_NAME,  TEST_METHOD_PAYLOAD, TEST_INVOKE_TIMEOUT, 
+                                                                       &responseStatus, &responsePayload, &responsePayloadSize);
+    ASSERT_ARE_EQUAL(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_INVALID_ARG, result);
+}
+
+TEST_FUNCTION(IoTHubClientCore_GenericMethodInvoke_NULL_device_id_fails)
+{
+    //arrange
+    IOTHUB_CLIENT_CORE_HANDLE iothub_handle = IoTHubClientCore_Create(TEST_CLIENT_CONFIG);
+    umock_c_reset_all_calls();
+
+    //act
+    int responseStatus;
+    unsigned char* responsePayload;
+    size_t responsePayloadSize;
+    
+    IOTHUB_CLIENT_RESULT result = IoTHubClientCore_GenericMethodInvoke(iothub_handle, NULL, TEST_MODULE_ID, 
+                                                                       TEST_METHOD_NAME,  TEST_METHOD_PAYLOAD, TEST_INVOKE_TIMEOUT, 
+                                                                       &responseStatus, &responsePayload, &responsePayloadSize);
+
+    ASSERT_ARE_EQUAL(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_INVALID_ARG, result);
+    IoTHubClientCore_Destroy(iothub_handle);
+}
+
+TEST_FUNCTION(IoTHubClientCore_GenericMethodInvoke_NULL_method_name_fails)
+{
+    //arrange
+    IOTHUB_CLIENT_CORE_HANDLE iothub_handle = IoTHubClientCore_Create(TEST_CLIENT_CONFIG);
+    umock_c_reset_all_calls();
+
+    //act
+    int responseStatus;
+    unsigned char* responsePayload;
+    size_t responsePayloadSize;
+    
+    IOTHUB_CLIENT_RESULT result = IoTHubClientCore_GenericMethodInvoke(iothub_handle, TEST_DEVICE_ID, TEST_MODULE_ID, 
+                                                                       NULL,  TEST_METHOD_PAYLOAD, TEST_INVOKE_TIMEOUT, 
+                                                                       &responseStatus, &responsePayload, &responsePayloadSize);
+
+    ASSERT_ARE_EQUAL(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_INVALID_ARG, result);
+    IoTHubClientCore_Destroy(iothub_handle);
+}
+
+
+TEST_FUNCTION(IoTHubClientCore_GenericMethodInvoke_NULL_method_payload_fails)
+{
+    //arrange
+    IOTHUB_CLIENT_CORE_HANDLE iothub_handle = IoTHubClientCore_Create(TEST_CLIENT_CONFIG);
+    umock_c_reset_all_calls();
+
+    //act
+    int responseStatus;
+    unsigned char* responsePayload;
+    size_t responsePayloadSize;
+    
+    IOTHUB_CLIENT_RESULT result = IoTHubClientCore_GenericMethodInvoke(iothub_handle, TEST_DEVICE_ID, TEST_MODULE_ID, 
+                                                                       TEST_METHOD_NAME,  NULL, TEST_INVOKE_TIMEOUT, 
+                                                                       &responseStatus, &responsePayload, &responsePayloadSize);
+
+    ASSERT_ARE_EQUAL(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_INVALID_ARG, result);
+    IoTHubClientCore_Destroy(iothub_handle);
+}
+
+TEST_FUNCTION(IoTHubClientCore_GenericMethodInvoke_NULL_response_status_fails)
+{
+    //arrange
+    IOTHUB_CLIENT_CORE_HANDLE iothub_handle = IoTHubClientCore_Create(TEST_CLIENT_CONFIG);
+    umock_c_reset_all_calls();
+
+    //act
+    unsigned char* responsePayload;
+    size_t responsePayloadSize;
+    
+    IOTHUB_CLIENT_RESULT result = IoTHubClientCore_GenericMethodInvoke(iothub_handle, TEST_DEVICE_ID, TEST_MODULE_ID, 
+                                                                       TEST_METHOD_NAME,  NULL, TEST_INVOKE_TIMEOUT, 
+                                                                       NULL, &responsePayload, &responsePayloadSize);
+
+    ASSERT_ARE_EQUAL(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_INVALID_ARG, result);
+    IoTHubClientCore_Destroy(iothub_handle);
+}
+
+TEST_FUNCTION(IoTHubClientCore_GenericMethodInvoke_NULL_response_payload_fails)
+{
+    //arrange
+    IOTHUB_CLIENT_CORE_HANDLE iothub_handle = IoTHubClientCore_Create(TEST_CLIENT_CONFIG);
+    umock_c_reset_all_calls();
+
+    //act
+    int responseStatus;
+    size_t responsePayloadSize;
+    
+    IOTHUB_CLIENT_RESULT result = IoTHubClientCore_GenericMethodInvoke(iothub_handle, TEST_DEVICE_ID, TEST_MODULE_ID, 
+                                                                       TEST_METHOD_NAME,  NULL, TEST_INVOKE_TIMEOUT, 
+                                                                       &responseStatus, NULL, &responsePayloadSize);
+
+    ASSERT_ARE_EQUAL(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_INVALID_ARG, result);
+    IoTHubClientCore_Destroy(iothub_handle);
+}
+
+TEST_FUNCTION(IoTHubClientCore_GenericMethodInvoke_NULL_response_size_fails)
+{
+    //arrange
+    IOTHUB_CLIENT_CORE_HANDLE iothub_handle = IoTHubClientCore_Create(TEST_CLIENT_CONFIG);
+    umock_c_reset_all_calls();
+
+    //act
+    int responseStatus;
+    unsigned char* responsePayload;
+    
+    IOTHUB_CLIENT_RESULT result = IoTHubClientCore_GenericMethodInvoke(iothub_handle, TEST_DEVICE_ID, TEST_MODULE_ID, 
+                                                                       TEST_METHOD_NAME,  TEST_METHOD_PAYLOAD, TEST_INVOKE_TIMEOUT, 
+                                                                       &responseStatus, &responsePayload, NULL);
+
+    ASSERT_ARE_EQUAL(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_INVALID_ARG, result);
+    IoTHubClientCore_Destroy(iothub_handle);
+}
+
+
+
 #endif
 
 
