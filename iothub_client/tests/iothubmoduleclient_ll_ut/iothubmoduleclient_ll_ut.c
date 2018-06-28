@@ -169,6 +169,9 @@ TEST_FUNCTION(IoTHubModuleClient_LL_CreateFromConnectionString_Test)
     //assert
     ASSERT_IS_NOT_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    //cleanup
+    IoTHubModuleClient_LL_Destroy(result);
 }
 
 //TEST_FUNCTION

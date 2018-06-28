@@ -365,6 +365,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(BUFFER_new, NULL);
     REGISTER_GLOBAL_MOCK_RETURN(BUFFER_length, DUMMY_UINT);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(BUFFER_length, 0);
+    REGISTER_GLOBAL_MOCK_HOOK(BUFFER_delete, my_BUFFER_delete);
 
     REGISTER_GLOBAL_MOCK_HOOK(HTTPHeaders_Alloc, my_HTTPHeaders_Alloc);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(HTTPHeaders_Alloc, NULL);
@@ -376,6 +377,7 @@ TEST_SUITE_INITIALIZE(suite_init)
 
     REGISTER_GLOBAL_MOCK_HOOK(HTTPAPIEX_Create, my_HTTPAPIEX_Create);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(HTTPAPIEX_Create, NULL);
+    REGISTER_GLOBAL_MOCK_HOOK(HTTPAPIEX_Destroy, my_HTTPAPIEX_Destroy);
     REGISTER_GLOBAL_MOCK_RETURN(HTTPAPIEX_SetOption, HTTPAPIEX_OK);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(HTTPAPIEX_SetOption, HTTPAPIEX_ERROR);
     REGISTER_GLOBAL_MOCK_HOOK(HTTPAPIEX_ExecuteRequest, my_HTTPAPIEX_ExecuteRequest);
@@ -742,6 +744,7 @@ TEST_FUNCTION(IoTHubClient_Edge_DeviceMethodInvoke_SUCCESS)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     //cleanup
+    free(responsePayload);
     IoTHubClient_EdgeHandle_Destroy(handle);
 }
 
@@ -791,6 +794,9 @@ TEST_FUNCTION(IoTHubClient_Edge_DeviceMethodInvoke_FAIL)
         //assert
         ASSERT_IS_TRUE_WITH_MSG(result == IOTHUB_CLIENT_ERROR, tmp_msg);
     }
+
+    //cleanup
+    IoTHubClient_EdgeHandle_Destroy(handle);
 
     umock_c_negative_tests_deinit();
 }
@@ -981,6 +987,7 @@ TEST_FUNCTION(IoTHubClient_Edge_ModuleMethodInvoke_SUCCESS)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     //cleanup
+    free(responsePayload);
     IoTHubClient_EdgeHandle_Destroy(handle);
 }
 
@@ -1031,6 +1038,8 @@ TEST_FUNCTION(IoTHubClient_Edge_ModuleMethodInvoke_FAIL)
         ASSERT_IS_TRUE_WITH_MSG(result == IOTHUB_CLIENT_ERROR, tmp_msg);
     }
 
+    //cleanup
+    IoTHubClient_EdgeHandle_Destroy(handle);
     umock_c_negative_tests_deinit();
 }
 
