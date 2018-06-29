@@ -96,13 +96,31 @@ IOTHUB_MODULE_CLIENT_HANDLE IoTHubModuleClient_CreateFromEnvironment(IOTHUB_CLIE
 
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_DeviceMethodInvokeAsync(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
-    return IoTHubClientCore_GenericMethodInvoke((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, deviceId, NULL, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+    if ((iotHubClientHandle == NULL) || (deviceId == NULL) || (methodName == NULL) || (methodPayload == NULL) || (responseStatus == NULL) || (responsePayload == NULL) || (responsePayloadSize == NULL))
+    {
+        LogError("Argument cannot be NULL");
+        result = IOTHUB_CLIENT_INVALID_ARG;
+    }
+    else
+    {
+        result = IoTHubClientCore_GenericMethodInvoke((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, deviceId, NULL, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+    
+    }
+    return result;
 }
 
 IOTHUB_CLIENT_RESULT IoTHubModuleClient_ModuleMethodInvokeAsync(IOTHUB_MODULE_CLIENT_HANDLE iotHubModuleClientHandle, const char* deviceId, const char* moduleId, const char* methodName, const char* methodPayload, unsigned int timeout, int* responseStatus, unsigned char** responsePayload, size_t* responsePayloadSize)
 {
-    return IoTHubClientCore_GenericMethodInvoke((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
-
+    if ((iotHubClientHandle == NULL) || (deviceId == NULL) || (moduleId == NULL) || (methodName == NULL) || (methodPayload == NULL) || (responseStatus == NULL) || (responsePayload == NULL) || (responsePayloadSize == NULL))
+    {
+        LogError("Argument cannot be NULL");
+        result = IOTHUB_CLIENT_INVALID_ARG;
+    }
+    else
+    {
+        result = IoTHubClientCore_GenericMethodInvoke((IOTHUB_CLIENT_CORE_HANDLE)iotHubModuleClientHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize);
+    }
+    return result;
 }
 
 #endif /*USE_EDGE_MODULES*/

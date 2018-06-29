@@ -2403,12 +2403,7 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_GenericMethodInvoke(IOTHUB_CLIENT_CORE_HAN
     IOTHUB_CLIENT_RESULT result;
     HTTPWORKER_THREAD_INFO *threadInfo;
 
-    if ((iotHubClientHandle == NULL) || (deviceId == NULL) || (moduleId == NULL) || (methodName == NULL) || (methodPayload == NULL) || (responseStatus == NULL) || (responsePayload == NULL) || (responsePayloadSize == NULL))
-    {
-        LogError("Argument cannot be NULL");
-        result = IOTHUB_CLIENT_INVALID_ARG;
-    }
-    else if ((threadInfo = allocateMethodInvoke(iotHubClientHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize)) == NULL)
+    if ((threadInfo = allocateMethodInvoke(iotHubClientHandle, deviceId, moduleId, methodName, methodPayload, timeout, responseStatus, responsePayload, responsePayloadSize)) == NULL)
     {
         LogError("failed allocation");
         result = IOTHUB_CLIENT_ERROR;
