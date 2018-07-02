@@ -4272,5 +4272,4 @@ TEST_FUNCTION(IoTHubClientCore_GenericMethodInvoke_fail)
 }
 #endif
 
-
 END_TEST_SUITE(iothubclientcore_ut)

@@ -6384,7 +6384,6 @@ TEST_FUNCTION(IoTHubClientCore_LL_SetInputMessageCallbackEx_with_NULL_inputName_
     IoTHubClientCore_LL_Destroy(handle);
 }
 
-
 /* Partial refactoring has rendered the below tests invalid - These need to be restored in some capacity once iothub_client refactor is complete */
 
 //

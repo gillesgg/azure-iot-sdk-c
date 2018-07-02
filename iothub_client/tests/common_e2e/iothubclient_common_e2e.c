@@ -571,7 +571,6 @@ static void sendeventasync_on_device_or_module(IOTHUB_MESSAGE_HANDLE msgHandle, 
     ASSERT_ARE_EQUAL_WITH_MSG(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_OK, result, "SendEventAsync failed");
 }
 
-
 static void setmessagecallback_on_device_or_module(EXPECTED_RECEIVE_DATA* receiveUserContext)
 {
     IOTHUB_CLIENT_RESULT result;
@@ -1057,6 +1056,10 @@ void e2e_d2c_with_svc_fault_ctrl_with_transport_status(IOTHUB_CLIENT_TRANSPORT_P
         size_t refresh_time = 10;
         setoption_on_device_or_module(OPTION_SAS_TOKEN_REFRESH_TIME, (const void*)&refresh_time, "Failed setting OPTION_SAS_TOKEN_REFRESH_TIME");
     }
+
+    LogInfo("Sleeping 3 seconds to let SetMessageCallback() register with server.");
+    ThreadAPI_Sleep(3000);
+    LogInfo("Continue with service client message.");
 
     // Send the Event from the client
     LogInfo("Send message and wait for confirmation...");

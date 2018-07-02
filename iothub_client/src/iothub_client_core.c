@@ -2416,8 +2416,4 @@ IOTHUB_CLIENT_RESULT IoTHubClientCore_GenericMethodInvoke(IOTHUB_CLIENT_CORE_HAN
     else
     {
         result = IOTHUB_CLIENT_OK;
-    }
-
-    return result;
-}
 #endif /* USE_EDGE_MODULES */

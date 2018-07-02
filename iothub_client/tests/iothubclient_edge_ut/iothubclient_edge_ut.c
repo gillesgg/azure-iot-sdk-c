@@ -216,7 +216,9 @@ static void my_json_value_free(JSON_Value* value)
 static char* my_json_serialize_to_string(const JSON_Value* value)
 {
     (void)value;
-    return (char*)real_malloc(1);
+    char* newstr;
+    my_mallocAndStrcpy_s(&newstr, "test");
+    return newstr;
 }
 
 static char* my_IoTHubClient_Auth_Get_SasToken(IOTHUB_AUTHORIZATION_HANDLE handle, const char* scope, size_t expiry_time_relative_seconds, const char* key_name)

@@ -15,7 +15,6 @@
 #include "iothub.h"
 #include "time.h"
 
-
 static int callbackCounter;
 static char msgText[1024];
 static char propText[1024];
@@ -102,7 +101,6 @@ int main(void)
             }
             IoTHubModuleClient_LL_DoWork(iotHubModuleClientHandle);
             ThreadAPI_Sleep(1000);
-
             iterator++;
         } while (1);
 
