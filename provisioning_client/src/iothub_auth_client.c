@@ -55,6 +55,7 @@ IOTHUB_SECURITY_HANDLE iothub_device_auth_create()
     {
         IOTHUB_SECURITY_TYPE iothub_security_t = iothub_security_type();
         memset(result, 0, sizeof(IOTHUB_SECURITY_INFO) );
+#if defined(HSM_TYPE_SAS_TOKEN)  || defined(HSM_AUTH_TYPE_CUSTOM)        
         if (iothub_security_t == IOTHUB_SECURITY_TYPE_SAS)
         {
             result->cred_type = AUTH_TYPE_SAS;
@@ -72,7 +73,9 @@ IOTHUB_SECURITY_HANDLE iothub_device_auth_create()
                 result = NULL;
             }
         }
-        else if (iothub_security_t == IOTHUB_SECURITY_TYPE_X509)
+#endif
+#if defined(HSM_TYPE_X509) || defined(HSM_AUTH_TYPE_CUSTOM)
+        if (iothub_security_t == IOTHUB_SECURITY_TYPE_X509)
         {
             result->cred_type = AUTH_TYPE_X509;
             result->base64_encode_signature = true;
@@ -90,8 +93,9 @@ IOTHUB_SECURITY_HANDLE iothub_device_auth_create()
                 result = NULL;
             }
         }
+#endif
 #ifdef HSM_TYPE_HTTP_EDGE
-        else if (iothub_security_t == IOTHUB_SECURITY_TYPE_HTTP_EDGE)
+        if (iothub_security_t == IOTHUB_SECURITY_TYPE_HTTP_EDGE)
         {
             result->cred_type = AUTH_TYPE_SAS;
             // Because HTTP_edge operates over HTTP, the server has already base64 encoded signature its returning to us.
