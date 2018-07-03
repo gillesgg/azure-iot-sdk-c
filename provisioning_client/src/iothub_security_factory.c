@@ -66,6 +66,10 @@ int iothub_security_init(IOTHUB_SECURITY_TYPE sec_type)
             LogError("Security type from caller %d (which maps to security device type %d) does not match already specified security device type %d", sec_type, secure_device_type_from_caller, security_device_type_from_prov);
             result = __FAILURE__;
         }
+        else
+        {
+            result = 0;
+        }
 
         if (result == 0)
         {
