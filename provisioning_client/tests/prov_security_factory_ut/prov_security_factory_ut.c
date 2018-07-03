@@ -350,7 +350,7 @@ TEST_FUNCTION(prov_dev_security_init_http_edge_types_fail)
     STRICT_EXPECTED_CALL(iothub_security_type()).SetReturn(IOTHUB_SECURITY_TYPE_SAS);
 
     //act
-    int result = prov_dev_security_init(IOTHUB_SECURITY_TYPE_HTTP_EDGE);
+    int result = prov_dev_security_init(SECURE_DEVICE_TYPE_HTTP_EDGE);
 
     //assert
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -361,7 +361,7 @@ TEST_FUNCTION(prov_dev_security_init_http_edge_types_fail)
 
 TEST_FUNCTION(prov_dev_security_deinit_http_edge_success)
 {
-    (void)prov_dev_security_init(IOTHUB_SECURITY_TYPE_HTTP_EDGE);
+    (void)prov_dev_security_init(SECURE_DEVICE_TYPE_HTTP_EDGE);
     umock_c_reset_all_calls();
 
     //arrange
@@ -378,7 +378,7 @@ TEST_FUNCTION(prov_dev_security_deinit_http_edge_success)
 
 TEST_FUNCTION(prov_dev_security_get_type_http_edge_success)
 {
-    (void)prov_dev_security_init(IOTHUB_SECURITY_TYPE_HTTP_EDGE);
+    (void)prov_dev_security_init(SECURE_DEVICE_TYPE_HTTP_EDGE);
     umock_c_reset_all_calls();
 
     //arrange
@@ -387,7 +387,7 @@ TEST_FUNCTION(prov_dev_security_get_type_http_edge_success)
     SECURE_DEVICE_TYPE result = prov_dev_security_get_type();
 
     //assert
-    ASSERT_ARE_EQUAL(SECURE_DEVICE_TYPE, IOTHUB_SECURITY_TYPE_HTTP_EDGE, result);
+    ASSERT_ARE_EQUAL(SECURE_DEVICE_TYPE, SECURE_DEVICE_TYPE_HTTP_EDGE, result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     //cleanup
