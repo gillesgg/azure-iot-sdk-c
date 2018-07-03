@@ -430,8 +430,8 @@ BEGIN_TEST_SUITE(iothub_auth_client_ut)
     TEST_FUNCTION(iothub_device_auth_create_tpm_succeed)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(iothub_security_type()).SetReturn(IOTHUB_SECURITY_TYPE_SAS);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(hsm_client_tpm_interface()).SetReturn(&test_tpm_interface);
         STRICT_EXPECTED_CALL(hsm_client_create());
 
@@ -450,8 +450,8 @@ BEGIN_TEST_SUITE(iothub_auth_client_ut)
     TEST_FUNCTION(iothub_device_auth_create_tpm_interface_NULL_fail)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(iothub_security_type()).SetReturn(IOTHUB_SECURITY_TYPE_SAS);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(hsm_client_tpm_interface()).SetReturn(&test_tpm_interface_fail);
         STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
@@ -491,8 +491,8 @@ BEGIN_TEST_SUITE(iothub_auth_client_ut)
     TEST_FUNCTION(iothub_device_auth_create_x509_succeed)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(iothub_security_type()).SetReturn(IOTHUB_SECURITY_TYPE_X509);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));        
         STRICT_EXPECTED_CALL(hsm_client_x509_interface()).SetReturn(&test_x509_interface);
         STRICT_EXPECTED_CALL(hsm_client_create());
 
@@ -511,8 +511,8 @@ BEGIN_TEST_SUITE(iothub_auth_client_ut)
     TEST_FUNCTION(iothub_device_auth_create_x509_Interface_NULL_fail)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(iothub_security_type()).SetReturn(IOTHUB_SECURITY_TYPE_X509);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(hsm_client_x509_interface()).SetReturn(&test_x509_interface_fail);
         STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
@@ -531,8 +531,8 @@ BEGIN_TEST_SUITE(iothub_auth_client_ut)
     TEST_FUNCTION(iothub_device_auth_create_concrete_iothub_device_auth_create_fail)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(iothub_security_type()).SetReturn(IOTHUB_SECURITY_TYPE_X509);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(hsm_client_x509_interface()).SetReturn(&test_x509_interface);
         STRICT_EXPECTED_CALL(hsm_client_create()).SetReturn(NULL);
         STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
