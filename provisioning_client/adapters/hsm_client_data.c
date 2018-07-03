@@ -4,9 +4,15 @@
 #include <stdlib.h>
 
 #include "azure_c_shared_utility/xlogging.h"
+#include "hsm_client_data.h"
 
+#if defined(HSM_TYPE_SAS_TOKEN)  || defined(HSM_AUTH_TYPE_CUSTOM)
 #include "hsm_client_tpm.h"
+#endif
+
+#if defined(HSM_TYPE_X509) || defined(HSM_AUTH_TYPE_CUSTOM)
 #include "hsm_client_riot.h"
+#endif
 
 int initialize_hsm_system()
 {

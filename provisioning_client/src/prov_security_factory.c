@@ -50,7 +50,7 @@ int prov_dev_security_init(SECURE_DEVICE_TYPE hsm_type)
 
     if (security_type_from_caller == IOTHUB_SECURITY_TYPE_UNKNOWN)
     {
-        LogError("HSM type %s is not supported on this SDK build", hsm_type);
+        LogError("HSM type %d is not supported on this SDK build", hsm_type);
         result = __FAILURE__;
     }
     else
@@ -66,6 +66,10 @@ int prov_dev_security_init(SECURE_DEVICE_TYPE hsm_type)
         {   
             LogError("Security HSM from caller %d (which maps to security type %d) does not match already specified security type %d", hsm_type, security_type_from_caller, security_type_from_iot);
             result = __FAILURE__;
+        }
+        else
+        {
+            result = 0;
         }
 
         if (result == 0)
